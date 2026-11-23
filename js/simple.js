@@ -18,20 +18,16 @@ if (typeof TR_I18N !== 'undefined' && TR_I18N._) { var v = TR_I18N._(k); if (v !
 return (isZh() ? D.zh : D.en)[k] || k;
 }
 
-// ─── Toast ───
 function showToast(msg) {
-  var existing = document.getElementById('simpleToast');
-  if (existing) existing.remove();
-  var toast = document.createElement('div');
-  toast.id = 'simpleToast';
-  toast.textContent = msg;
-  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.97);color:#be185d;border:1.5px solid rgba(244,114,182,0.3);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(236,72,153,0.2);z-index:2147483647;animation:slideUp .2s ease;';
-  document.body.appendChild(toast);
-  setTimeout(function() { toast.remove(); }, 2500);
+var existing = document.getElementById('simpleToast');
+if (existing) existing.remove();
+var toast = document.createElement('div');
+toast.id = 'simpleToast';
+toast.textContent = msg;
+toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.97);color:#be185d;border:1.5px solid rgba(244,114,182,0.3);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(236,72,153,0.2);z-index:2147483647;animation:slideUp .2s ease;';
+document.body.appendChild(toast);
+setTimeout(function() { toast.remove(); }, 2500);
 }
-
-// ─── Remove advanced elements ───
-document.querySelectorAll('#app, .app-container, .app, main, .container, .tabs-container, .editor-container, .rules-panel, .editor-panel, .diff-panel, .sandbox-panel, .batch-panel, .header, .footer, .toolbar, [class*="tab"]:not(.simple-tab), [class*="advanced"]').forEach(function(el) { el.remove(); });
 
 // ─── Styles ───
 var style = document.createElement('style');
@@ -63,8 +59,8 @@ var simple = document.getElementById('simpleMode') || (function(){ var d=documen
 simple.innerHTML = `
 <div class="simple-container">
 <h2>
-  <span>${_t('simpleTitle')}</span>
-  <a class="advanced-link" href="${location.pathname}?advanced=1${location.hash}">⚙ ${_t('advanced')}</a>
+<span>${_t('simpleTitle')}</span>
+<a class="advanced-link" href="${location.pathname}?advanced=1${location.hash}">⚙ ${_t('advanced')}</a>
 </h2>
 <div id="simpleRules">
 <div class="simple-rule-row">
@@ -106,7 +102,6 @@ var vMeta = document.querySelector('meta[name="version"]');
 var tv = document.getElementById('topVersion');
 if (tv && vMeta) tv.textContent = vMeta.content;
 
-// ─── Helpers ───
 function escAttr(s) { return (s||'').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
 function gatherRules() {
@@ -138,7 +133,6 @@ container.appendChild(row);
 row.querySelector('.simple-remove-rule').onclick = function() { row.remove(); updateRemove(); };
 }
 
-// ─── Save Rules ───
 document.getElementById('simpleSaveRules').onclick = function() {
 var data = gatherRules();
 var name = prompt(isZh() ? '规则集名称:' : 'Ruleset name:', 'my-rules');
@@ -152,10 +146,7 @@ URL.revokeObjectURL(a.href);
 showToast(_t('rulesExported'));
 };
 
-// ─── Load Rules ───
-document.getElementById('simpleLoadRules').onclick = function() {
-document.getElementById('simpleRulesFileInput').click();
-};
+document.getElementById('simpleLoadRules').onclick = function() { document.getElementById('simpleRulesFileInput').click(); };
 document.getElementById('simpleRulesFileInput').onchange = function() {
 var f = this.files[0]; if (!f) return;
 var reader = new FileReader();
@@ -167,7 +158,6 @@ reader.readAsText(f);
 this.value = '';
 };
 
-// ─── Rule logic ───
 var container = document.getElementById('simpleRules');
 function updateRemove() {
 container.querySelectorAll('.simple-rule-row').forEach(function(row) {
