@@ -3,30 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.0">
+<meta name="version" content="v1.0.1">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="css/app.css" integrity="sha384-vPhzh3Q7WoI3hK5BTdkbwuZAokvcuoJ9SmO9bqiWtVc1UlV/E3Hg7Sia9ZQyjZ99" crossorigin="anonymous">
+<link rel="stylesheet" href="css/app.css" integrity="sha384-oGKb0F1EzYvnMHaosS2Tv307KQ0bW2+Ap3VsCRji+Fkumtj3lIpeuwmlIcWKoQNg" crossorigin="anonymous">
 </head>
 <body>
 
+<!--  SIMPLE MODE (first-run)  -->
+<div id="simpleMode" class="simple-mode">
+  <div class="simple-container">
+    <h2><span id="t-title">Text</span> Replacer</h2>
+    <p class="simple-hint" id="t-simple-hint">Paste text, set find &amp; replace, and go.</p>
+    <div class="simple-rule">
+      <input id="simpleFrom" placeholder="Find (literal or /regex/)">
+      <span class="simple-arrow"></span>
+      <input id="simpleTo" placeholder="Replace with">
+      <label class="simple-toggle"><input type="checkbox" id="simpleRegex">Regex</label>
+      <label class="simple-toggle"><input type="checkbox" id="simpleCase">Aa</label>
+    </div>
+    <div class="simple-panes">
+      <textarea id="simpleInput" spellcheck="false" placeholder="Paste or type text here..."></textarea>
+      <textarea id="simpleOutput" readonly spellcheck="false" placeholder="Result appears here..."></textarea>
+    </div>
+    <div class="simple-actions">
+      <button id="simpleReplace" class="btn-primary">&#128260; Replace</button>
+      <button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
+      <button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
+      <span class="simple-spacer"></span>
+      <button id="simpleAdvanced" class="btn-ghost" title="Show all features">&#9881; Advanced &#9662;</button>
+    </div>
+  </div>
+</div>
+
+<!--  FULL UI  -->
 <div class="header">
-  <h1><span id="t-title">Text</span> Replacer</h1>
+  <h1><span id="t-title2">Text</span> Replacer</h1>
   <div class="toolbar">
-    <button id="btnUndo" title="Ctrl+Z"><span id="t-undo">↩ Undo</span></button>
-    <button id="btnRedo" title="Ctrl+Y"><span id="t-redo">↪ Redo</span></button>
-    <button id="btnCopy"><span id="t-copy">📋 Copy</span></button>
-    <button id="btnDownload"><span id="t-dl">💾 Save</span></button>
-    <button id="btnLoad"><span id="t-load">📂 Load</span></button>
-    <button id="btnPreset"><span id="t-preset">📦 Presets</span></button>
+    <button id="btnUndo" title="Ctrl+Z"><span id="t-undo">&#8617; Undo</span></button>
+    <button id="btnRedo" title="Ctrl+Y"><span id="t-redo">&#8618; Redo</span></button>
+    <button id="btnCopy"><span id="t-copy">&#128203; Copy</span></button>
+    <button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
+    <button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
+    <button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
+    <button id="btnBackSimple" class="btn-ghost-header" title="Switch to simple mode">&#8592; Simple</button>
   </div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-panel="rules"><span id="t-tab-rules">🔄 Rules</span></div>
-  <div class="tab" data-panel="editor"><span id="t-tab-edit">📝 Editor</span></div>
-  <div class="tab" data-panel="diff"><span id="t-tab-diff">🔍 Diff</span></div>
-  <div class="tab" data-panel="sandbox"><span id="t-tab-sand">🧪 Sandbox</span></div>
-  <div class="tab" data-panel="batch"><span id="t-tab-batch">📦 Batch</span></div>
+  <div class="tab active" data-panel="rules"><span id="t-tab-rules">&#128260; Rules</span></div>
+  <div class="tab" data-panel="editor"><span id="t-tab-edit">&#128221; Editor</span></div>
+  <div class="tab" data-panel="diff"><span id="t-tab-diff">&#128269; Diff</span></div>
+  <div class="tab" data-panel="sandbox"><span id="t-tab-sand">&#129514; Sandbox</span></div>
+  <div class="tab" data-panel="batch"><span id="t-tab-batch">&#128230; Batch</span></div>
 </div>
 
 <!-- RULES -->
@@ -46,14 +74,14 @@
 <!-- EDITOR -->
 <div class="panel" id="panel-editor">
   <div class="editor-pane">
-    <div class="pane-header"><span id="t-input">📥 Input</span><span class="stats" id="inputStats">0</span></div>
+    <div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
     <div class="editor-wrap">
       <textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea>
       <div class="highlight-layer" id="inputHL"></div>
     </div>
   </div>
   <div class="editor-pane">
-    <div class="pane-header"><span id="t-output">📤 Output</span><span class="stats" id="outputStats">0</span></div>
+    <div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
     <div class="editor-wrap">
       <textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea>
       <div class="highlight-layer" id="outputHL"></div>
@@ -64,7 +92,7 @@
 <!-- DIFF -->
 <div class="panel" id="panel-diff">
   <div class="editor-pane">
-    <div class="pane-header"><span id="t-diff">🔍 Diff</span><span class="stats" id="diffStats">0</span></div>
+    <div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
     <div class="diff-output" id="diffOutput"></div>
   </div>
 </div>
@@ -84,7 +112,7 @@
     </div>
     <div class="sandbox-row">
       <label><span id="t-sb-test">Test text:</span></label>
-      <button id="sbRun" class="btn-primary"><span id="t-sb-run">▶ Run</span></button>
+      <button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button>
       <button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button>
     </div>
     <div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
@@ -95,8 +123,8 @@
 <div class="panel" id="panel-batch">
   <div class="batch">
     <div class="sandbox-row">
-      <button id="batchAdd" class="btn-primary"><span id="t-bt-add">+ Add Files</span></button>
-      <button id="batchRun" class="btn-success"><span id="t-bt-run">▶ Process All</span></button>
+      <button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button>
+      <button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button>
       <button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button>
     </div>
     <div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
@@ -106,9 +134,9 @@
 <!-- PRESET MODAL -->
 <div class="modal-overlay" id="presetModal">
   <div class="modal">
-    <div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">✕</button></div>
+    <div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
     <div class="modal-body" id="presetList"></div>
-    <div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">💾 Save Current</span></button></div>
+    <div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
   </div>
 </div>
 
@@ -116,7 +144,6 @@
 <input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- HASH CHECK + DYNAMIC LOAD -->
 <script src="js/i18n.js"></script>
 <script src="js/state.js"></script>
 <script src="js/processor.js"></script>
@@ -136,9 +163,9 @@
   ];
   var version = document.querySelector('meta[name="version"]').content;
   var checks = {
-    'css/app.css':'Phzh3Q7WoI3hK5BT','js/i18n.js':'DTzVBmf9tJRcbbPI','js/state.js':'jZzFyJtBySUz1Si+','js/processor.js':'hJnGrDyRI81X0A6K',
+    'css/app.css':'GKb0F1EzYvnMHaos','js/i18n.js':'DTzVBmf9tJRcbbPI','js/state.js':'jZzFyJtBySUz1Si+','js/processor.js':'hJnGrDyRI81X0A6K',
     'js/rules.js':'P9LuS1oROIl16WY4','js/editor.js':'6JIMbXNi8MbPw+cU','js/sandbox.js':'WEa+XZSWvBxEitHr','js/batch.js':'K+7Pmzz6a1rnxV2+',
-    'js/presets.js':'l0hcKHX9hVI3dPta','js/ui.js':'b/AF0LZU8Rfes0mQ','js/app.js':'ArWpbDnB/ZmwyQVB'
+    'js/presets.js':'l0hcKHX9hVI3dPta','js/ui.js':'b/AF0LZU8Rfes0mQ','js/app.js':'HiVPQ2loqfJUSnn4'
   };
   function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return h.toString(36)}
   function checkAll(){
