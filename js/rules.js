@@ -1,44 +1,177 @@
 /* ===== js/rules.js ===== */
-var TR_RULES = (function(){
-function render(){
-var list = document.getElementById('rulesList');
-var q = (document.getElementById('ruleSearch').value || '').toLowerCase();
-list.innerHTML = '';
-var filtered = TR_STATE.rules.filter(function(r){
-return !q || r.from.toLowerCase().indexOf(q) !== -1 || r.to.toLowerCase().indexOf(q) !== -1;
-});
-filtered.forEach(function(rule){
-var row = document.createElement('div');
-row.className = 'rule-row' + (rule.enabled ? '' : ' disabled');
-row.innerHTML =
-'<div class="rule-toggles">'+
-'<label><input type="checkbox" '+(rule.regex?'checked':'')+' data-p="regex">R</label>'+
-'<label><input type="checkbox" '+(rule.case?'checked':'')+' data-p="case">Aa</label>'+
-'<label><input type="checkbox" '+(rule.enabled?'checked':'')+' data-p="enabled">✓</label>'+
-'</div>'+
-'<div class="rule-fields">'+
-'<input class="rf" value="'+TR_PROCESSOR.escD(rule.from)+'" placeholder="from">'+
-'<div class="arrow">↓</div>'+
-'<input class="rt" value="'+TR_PROCESSOR.escD(rule.to)+'" placeholder="to">'+
-'</div>'+
-'<button class="rule-remove">✕</button>';
-row.querySelectorAll('input[type="checkbox"]').forEach(function(cb){
-cb.onchange = function(){ rule[cb.dataset.p] = cb.checked; row.classList.toggle('disabled', !rule.enabled); TR_UI.process(); };
-});
-row.querySelector('.rf').oninput = function(e){ rule.from = e.target.value; TR_UI.process(); };
-row.querySelector('.rt').oninput = function(e){ rule.to = e.target.value; TR_UI.process(); };
-// FIXED: use rule.id instead of stale indexOf
-row.querySelector('.rule-remove').onclick = function(){
-var idx = TR_STATE.rules.findIndex(function(r){ return r.id === rule.id; });
-if(idx !== -1){ TR_STATE.rules.splice(idx,1); render(); TR_UI.process(); }
-};
-list.appendChild(row);
-});
-if(!list.innerHTML) list.innerHTML = '<div style="padding:20px;text-align:center;color:#555;font-size:12px">'+TR_I18N._('noRules')+'</div>';
-}
-function addRule(){ TR_STATE.rules.push({id:TR_STATE.nextId, from:'', to:'', regex:false, case:false, enabled:true}); render(); }
-function clearRules(){ TR_STATE.rules = []; render(); TR_UI.process(); }
-function importRules(text){ TR_STATE.rules = JSON.parse(text).map(function(r){ r.id=TR_STATE.nextId; return r; }); render(); TR_UI.process(); }
-function exportRules(){ return JSON.stringify(TR_STATE.rules, null, 2); }
-return { render: render, addRule: addRule, clearRules: clearRules, importRules: importRules, exportRules: exportRules };
+var TR_RULES = (function () {
+    'use strict';
+
+    // ─── ID generator (no dependency on TR_STATE.nextId) ───
+    function genId() {
+        return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+    }
+
+    // ─── Default rule factory ───
+    function createRule(opts) {
+        return {
+            id: (opts && opts.id) || genId(),
+            from: (opts && opts.from !== undefined) ? opts.from : '',
+            to: (opts && opts.to !== undefined) ? opts.to : '',
+            regex: !!(opts && opts.regex),
+            case: !!(opts && opts.case),
+            enabled: (opts && opts.enabled !== undefined) ? !!opts.enabled : true
+        };
+    }
+
+    // ─── Escape HTML attribute ───
+    function escAttr(s) {
+        return (s || '').toString()
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    // ─── Render rule list ───
+    function render() {
+        var list = document.getElementById('rulesList');
+        var searchEl = document.getElementById('ruleSearch');
+        var q = (searchEl && searchEl.value || '').toLowerCase();
+
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (!TR_STATE || !Array.isArray(TR_STATE.rules)) {
+            list.innerHTML = '<div style="color:#888;padding:8px;font-size:12px;">No rules available</div>';
+            return;
+        }
+
+        var filtered = TR_STATE.rules.filter(function (r) {
+            var hay = ((r.from || '') + ' ' + (r.to || '')).toLowerCase();
+            return !q || hay.indexOf(q) !== -1;
+        });
+
+        if (filtered.length === 0) {
+            var empty = document.createElement('div');
+            empty.style.cssText = 'color:#888;padding:8px;font-size:12px;';
+            empty.textContent = (TR_I18N && TR_I18N._('noRules')) || 'No rules match search';
+            list.appendChild(empty);
+            return;
+        }
+
+        filtered.forEach(function (rule) {
+            var row = document.createElement('div');
+            row.className = 'rule-row' + (rule.enabled ? '' : ' disabled');
+
+            // ─── Toggles ───
+            var toggles = document.createElement('div');
+            toggles.className = 'rule-toggles';
+            toggles.innerHTML =
+                '<label><input type="checkbox" data-act="enabled" ' + (rule.enabled ? 'checked' : '') + '>on</label>' +
+                '<label><input type="checkbox" data-act="regex" ' + (rule.regex ? 'checked' : '') + '>re</label>' +
+                '<label><input type="checkbox" data-act="case" ' + (rule.case ? 'checked' : '') + '>Aa</label>';
+
+            // ─── Fields ───
+            var fields = document.createElement('div');
+            fields.className = 'rule-fields';
+            fields.innerHTML =
+                '<input data-fld="from" value="' + escAttr(rule.from) + '" placeholder="Find">' +
+                '<div class="arrow">↓</div>' +
+                '<input data-fld="to" value="' + escAttr(rule.to) + '" placeholder="Replace">';
+
+            // ─── Remove button ───
+            var removeBtn = document.createElement('button');
+            removeBtn.className = 'rule-remove';
+            removeBtn.dataset.act = 'remove';
+            removeBtn.innerHTML = '✕';
+
+            row.appendChild(toggles);
+            row.appendChild(fields);
+            row.appendChild(removeBtn);
+
+            // ─── Toggle events ───
+            toggles.querySelectorAll('input').forEach(function (inp) {
+                inp.addEventListener('change', function () {
+                    if (this.dataset.act === 'enabled') rule.enabled = this.checked;
+                    if (this.dataset.act === 'regex') rule.regex = this.checked;
+                    if (this.dataset.act === 'case') rule.case = this.checked;
+                    row.classList.toggle('disabled', !rule.enabled);
+                    if (TR_UI && TR_UI.process) TR_UI.process();
+                });
+            });
+
+            // ─── Input events ───
+            fields.querySelectorAll('input').forEach(function (inp) {
+                inp.addEventListener('input', function () {
+                    if (this.dataset.fld === 'from') rule.from = this.value;
+                    if (this.dataset.fld === 'to') rule.to = this.value;
+                    if (TR_UI && TR_UI.process) TR_UI.process();
+                });
+            });
+
+            // ─── Remove event ───
+            removeBtn.addEventListener('click', function () {
+                TR_STATE.rules = TR_STATE.rules.filter(function (r) { return r.id !== rule.id; });
+                render();
+                if (TR_UI && TR_UI.process) TR_UI.process();
+            });
+
+            list.appendChild(row);
+        });
+    }
+
+    // ─── Add rule ───
+    function addRule(rule) {
+        if (!TR_STATE.rules) TR_STATE.rules = [];
+        TR_STATE.rules.push(createRule(rule));
+        render();
+    }
+
+    // ─── Clear all rules ───
+    function clearRules() {
+        if (confirm('Clear all rules?')) {
+            TR_STATE.rules = [];
+            render();
+            if (TR_UI && TR_UI.process) TR_UI.process();
+        }
+    }
+
+    // ─── Get rules ───
+    function getRules() {
+        return TR_STATE.rules || [];
+    }
+
+    // ─── Set rules (with normalization) ───
+    function setRules(arr) {
+        if (!Array.isArray(arr)) return;
+        TR_STATE.rules = arr.map(function (r) { return createRule(r); });
+        render();
+    }
+
+    // ─── Export rules ───
+    function exportRules() {
+        return JSON.stringify({ rules: getRules(), version: '1.0.32' }, null, 2);
+    }
+
+    // ─── Import rules (accepts string or object) ───
+    function importRules(data) {
+        try {
+            var parsed = typeof data === 'string' ? JSON.parse(data) : data;
+            var rules = parsed.rules || parsed;
+            if (Array.isArray(rules)) {
+                setRules(rules);
+                return true;
+            }
+        } catch (e) {
+            console.error('[TR] importRules failed:', e);
+        }
+        return false;
+    }
+
+    // ─── Public API ───
+    return {
+        render: render,
+        addRule: addRule,
+        clearRules: clearRules,
+        getRules: getRules,
+        setRules: setRules,
+        exportRules: exportRules,
+        importRules: importRules
+    };
 })();

@@ -98,44 +98,53 @@ if (batchFileInput) {
 }
 bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
 
-// ─── STEP 8: Import / Export (simple, no freeze) ───
-var importInput = document.createElement('input');
-importInput.type = 'file'; importInput.accept = '.json'; importInput.style.display = 'none';
-document.body.appendChild(importInput);
+// ─── STEP 8: Import / Export (safe, no race) ───
+(function () {
+    var importInput = document.createElement('input');
+    importInput.type = 'file';
+    importInput.accept = '.json,application/json';
+    importInput.style.display = 'none';
+    document.body.appendChild(importInput);
 
-importInput.addEventListener('change', function() {
-  var f = this.files[0]; if (!f) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      var raw = e.target.result;
-      // Import rules as string (TR_RULES.importRules expects string)
-      if (TR_RULES && TR_RULES.importRules) TR_RULES.importRules(raw);
-      // Also update state
-      var data = JSON.parse(raw);
-      if (TR_STATE && data.rules) TR_STATE.rules = data.rules.map(function(r){ r.id = TR_STATE.nextId; return r; });
-      // Render
-      setTimeout(function() {
-        if (TR_RULES && TR_RULES.render) TR_RULES.render();
-        if (TR_UI && TR_UI.process) TR_UI.process();
-        if (TR_UI && TR_UI.toast) TR_UI.toast('✅ Rules imported');
-      }, 50);
-    } catch(err) { console.error('[TR] Import error:', err); }
-  };
-  reader.readAsText(f);
-  this.value = '';
-});
+    importInput.addEventListener('change', function () {
+        var f = this.files[0]; if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                if (TR_RULES && TR_RULES.importRules) {
+                    TR_RULES.importRules(e.target.result);
+                }
+                setTimeout(function () {
+                    if (TR_RULES && TR_RULES.render) TR_RULES.render();
+                    if (TR_UI && TR_UI.process) TR_UI.process();
+                    if (TR_UI && TR_UI.toast) TR_UI.toast('✅ Rules imported');
+                }, 50);
+            } catch (err) { console.error('[TR] Import error:', err); }
+        };
+        reader.readAsText(f);
+        this.value = '';
+    });
 
-function doExport() {
-  var data = (TR_RULES && TR_RULES.exportRules) ? TR_RULES.exportRules() : { rules: TR_STATE.rules };
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rules.json'; a.click();
-  if (TR_UI && TR_UI.toast) TR_UI.toast('📤 Exported');
-}
+    function doExport() {
+        var data = (TR_RULES && TR_RULES.exportRules) ? TR_RULES.exportRules() : JSON.stringify({ rules: TR_STATE.rules }, null, 2);
+        var blob = new Blob([data], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'rules-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        if (TR_UI && TR_UI.toast) TR_UI.toast('📤 Exported');
+    }
 
-// Bind import/export buttons directly
-bind('importRules', function() { importInput.click(); });
-bind('exportRules', function() { doExport(); });
+    // Use event delegation instead of direct bind to avoid race
+    document.addEventListener('click', function (e) {
+        var el = e.target;
+        while (el && el !== document) {
+            if (el.id === 'importRules') { e.preventDefault(); importInput.click(); return; }
+            if (el.id === 'exportRules') { e.preventDefault(); doExport(); return; }
+            el = el.parentElement;
+        }
+    });
+})();
 
 // ─── STEP 9: Preset modal ───
 var presetModal = document.getElementById('presetModal');
