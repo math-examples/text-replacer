@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.2">
+<meta name="version" content="v1.0.3">
 <title>Text Replacer</title>
 <link rel="stylesheet" href="css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
 </head>
@@ -152,16 +152,16 @@
 <input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/i18n.js"></script>
-<script src="js/state.js"></script>
-<script src="js/processor.js"></script>
-<script src="js/rules.js"></script>
-<script src="js/editor.js"></script>
-<script src="js/sandbox.js"></script>
-<script src="js/batch.js"></script>
-<script src="js/presets.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/app.js"></script>
+<script src="js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous"></script>
+<script src="js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous"></script>
+<script src="js/processor.js" integrity="sha384-4hJnGrDyRI81X0A6K1ZaF4VzAhG3i/HhPuL7vA/7U1K8dS6ZENaMhM+zii3PQJdU" crossorigin="anonymous"></script>
+<script src="js/rules.js" integrity="sha384-eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT" crossorigin="anonymous"></script>
+<script src="js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous"></script>
+<script src="js/sandbox.js" integrity="sha384-lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3" crossorigin="anonymous"></script>
+<script src="js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous"></script>
+<script src="js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous"></script>
+<script src="js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous"></script>
+<script src="js/app.js" integrity="sha384-cQw3sZLyCSx5NmrIzuOWU2b3I4Us8+tnzOb7ahnl/5NQPSsYW6B+MqVjQgy0NlJI" crossorigin="anonymous"></script>
 <script>
 (function(){
   var files = [
@@ -171,16 +171,16 @@
   ];
   var version = document.querySelector('meta[name="version"]').content;
   var checks = {
-    'css/app.css':'4ejZ3LciDivNNeQe','js/i18n.js':'DTzVBmf9tJRcbbPI','js/state.js':'jZzFyJtBySUz1Si+','js/processor.js':'hJnGrDyRI81X0A6K',
-    'js/rules.js':'P9LuS1oROIl16WY4','js/editor.js':'6JIMbXNi8MbPw+cU','js/sandbox.js':'WEa+XZSWvBxEitHr','js/batch.js':'K+7Pmzz6a1rnxV2+',
-    'js/presets.js':'l0hcKHX9hVI3dPta','js/ui.js':'b/AF0LZU8Rfes0mQ','js/app.js':'Qw3sZLyCSx5NmrIz'
+    'css/app.css':'A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc','js/i18n.js':'9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO','js/state.js':'cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs','js/processor.js':'4hJnGrDyRI81X0A6K1ZaF4VzAhG3i/HhPuL7vA/7U1K8dS6ZENaMhM+zii3PQJdU',
+    'js/rules.js':'eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT','js/editor.js':'g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr','js/sandbox.js':'lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3','js/batch.js':'0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib',
+    'js/presets.js':'Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9','js/ui.js':'Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW','js/app.js':'cQw3sZLyCSx5NmrIzuOWU2b3I4Us8+tnzOb7ahnl/5NQPSsYW6B+MqVjQgy0NlJI'
   };
   function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return h.toString(36)}
   function checkAll(){
     var loaded=0;
     files.forEach(function(f){
-      fetch(f+'?v='+version,{cache:'no-cache'}).then(function(r){return r.text()}).then(function(t){
-        checks[f]=hashStr(t);loaded++;
+      fetch(f+'?v='+version,{cache:'no-cache'}).then(function(r){return r.text()}).then(async function(t){
+        checks[f]=await hashStr(t);loaded++;
         if(loaded===files.length){
           var stored=JSON.parse(localStorage.getItem('tr-hashes')||'{}');
           var changed=[];
