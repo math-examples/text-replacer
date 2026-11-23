@@ -3,147 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.4">
+<meta name="version" content="v1.0.5">
 <meta name="cdn-owner" content="math-examples">
 <meta name="cdn-repo" content="text-replacer">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
 </head>
 <body>
-
 <!-- ═══════════ SIMPLE MODE ═══════════ -->
 <div id="simpleMode" class="simple-mode">
-  <div class="simple-container">
-    <h2><span id="t-title">Text</span> Replacer</h2>
-    <p class="simple-hint" id="t-simple-hint">Paste text, set find &amp; replace, and go.</p>
-    <div class="simple-rule">
-      <input id="simpleFrom" placeholder="Find (literal or /regex/)">
-      <span class="simple-arrow">→</span>
-      <input id="simpleTo" placeholder="Replace with">
-      <label class="simple-toggle"><input type="checkbox" id="simpleRegex">Regex</label>
-      <label class="simple-toggle"><input type="checkbox" id="simpleCase">Aa</label>
-    </div>
-    <div class="simple-panes">
-      <textarea id="simpleInput" spellcheck="false" placeholder="Paste or type text here..."></textarea>
-      <textarea id="simpleOutput" readonly spellcheck="false" placeholder="Result appears here..."></textarea>
-    </div>
-    <div class="simple-actions">
-      <button id="simpleReplace" class="btn-primary">&#128260; Replace</button>
-      <button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
-      <button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
-      <span class="simple-spacer"></span>
-      <button id="simpleAdvanced" class="btn-ghost" title="Unlock multiple rules, diff view, sandbox, batch processing, presets, undo/redo, and more">
-        &#9881; Advanced <span class="advanced-arrow">&#9662;</span>
-      </button>
-    </div>
-    <div class="simple-feature-hint" id="advancedFeatureHint">
-      <span class="feature-hint-text">
-        &#128161; <strong>Advanced</strong> unlocks: multiple rules, regex sandbox, line-by-line diff, batch file processing, presets, undo/redo, and more. You can switch back anytime.
-      </span>
-    </div>
-  </div>
+<div class="simple-container">
+<h2><span id="t-title">Text</span> Replacer</h2>
+<p class="simple-hint" id="t-simple-hint">Paste text, set find &amp; replace, and go.</p>
+<div class="simple-rule">
+<input id="simpleFrom" placeholder="Find (literal or /regex/)">
+<span class="simple-arrow">→</span>
+<input id="simpleTo" placeholder="Replace with">
+<label class="simple-toggle"><input type="checkbox" id="simpleRegex">Regex</label>
+<label class="simple-toggle"><input type="checkbox" id="simpleCase">Aa</label>
 </div>
-
+<div class="simple-panes">
+<textarea id="simpleInput" spellcheck="false" placeholder="Paste or type text here..."></textarea>
+<textarea id="simpleOutput" readonly spellcheck="false" placeholder="Result appears here..."></textarea>
+</div>
+<div class="simple-actions">
+<button id="simpleReplace" class="btn-primary">&#128260; Replace</button>
+<button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
+<button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
+<span class="simple-spacer"></span>
+<button id="simpleAdvanced" class="btn-ghost" title="Unlock multiple rules, diff view, sandbox, batch processing, presets, undo/redo, and more">
+&#9881; Advanced <span class="advanced-arrow">&#9662;</span>
+</button>
+</div>
+<div class="simple-feature-hint" id="advancedFeatureHint">
+<span class="feature-hint-text">
+&#128161; <strong>Advanced</strong> unlocks: multiple rules, regex sandbox, line-by-line diff, batch file processing, presets, undo/redo, and more. You can switch back anytime.
+</span>
+</div>
+</div>
+</div>
 <!-- FULL UI -->
 <div class="header">
-  <h1><span id="t-title2">Text</span> Replacer</h1>
-  <div class="toolbar">
-    <button id="btnUndo" title="Ctrl+Z"><span id="t-undo">&#8617; Undo</span></button>
-    <button id="btnRedo" title="Ctrl+Y"><span id="t-redo">&#8618; Redo</span></button>
-    <button id="btnCopy"><span id="t-copy">&#128203; Copy</span></button>
-    <button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
-    <button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
-    <button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
-    <button id="btnBackSimple" class="btn-ghost-header">&#8592; Simple</button>
-  </div>
+<h1><span id="t-title2">Text</span> Replacer</h1>
+<div class="toolbar">
+<button id="btnUndo" title="Ctrl+Z"><span id="t-undo">&#8617; Undo</span></button>
+<button id="btnRedo" title="Ctrl+Y"><span id="t-redo">&#8618; Redo</span></button>
+<button id="btnCopy"><span id="t-copy">&#128203; Copy</span></button>
+<button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
+<button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
+<button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
+<button id="btnBackSimple" class="btn-ghost-header">&#8592; Simple</button>
 </div>
-
+</div>
 <div class="tabs">
-  <div class="tab active" data-panel="rules"><span id="t-tab-rules">&#128260; Rules</span></div>
-  <div class="tab" data-panel="editor"><span id="t-tab-edit">&#128221; Editor</span></div>
-  <div class="tab" data-panel="diff"><span id="t-tab-diff">&#128269; Diff</span></div>
-  <div class="tab" data-panel="sandbox"><span id="t-tab-sand">&#129514; Sandbox</span></div>
-  <div class="tab" data-panel="batch"><span id="t-tab-batch">&#128230; Batch</span></div>
+<div class="tab active" data-panel="rules"><span id="t-tab-rules">&#128260; Rules</span></div>
+<div class="tab" data-panel="editor"><span id="t-tab-edit">&#128221; Editor</span></div>
+<div class="tab" data-panel="diff"><span id="t-tab-diff">&#128269; Diff</span></div>
+<div class="tab" data-panel="sandbox"><span id="t-tab-sand">&#129514; Sandbox</span></div>
+<div class="tab" data-panel="batch"><span id="t-tab-batch">&#128230; Batch</span></div>
 </div>
-
 <div class="panel active" id="panel-rules"><div class="rules-panel">
-  <div class="rules-toolbar">
-    <input type="text" id="ruleSearch" placeholder="Search rules...">
-    <button id="addRule">+ <span id="t-add">Add</span></button>
-    <button id="clearRules"><span id="t-clear">Clear</span></button>
-    <button id="importRules"><span id="t-import">Import</span></button>
-    <button id="exportRules"><span id="t-export">Export</span></button>
-  </div>
-  <div class="rules-list" id="rulesList"></div>
+<div class="rules-toolbar">
+<input type="text" id="ruleSearch" placeholder="Search rules...">
+<button id="addRule">+ <span id="t-add">Add</span></button>
+<button id="clearRules"><span id="t-clear">Clear</span></button>
+<button id="importRules"><span id="t-import">Import</span></button>
+<button id="exportRules"><span id="t-export">Export</span></button>
+</div>
+<div class="rules-list" id="rulesList"></div>
 </div></div>
-
 <div class="panel" id="panel-editor"><div class="editor-pane">
-  <div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
-  <div class="editor-wrap"><textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea><div class="highlight-layer" id="inputHL"></div></div>
+<div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
+<div class="editor-wrap"><textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea><div class="highlight-layer" id="inputHL"></div></div>
 </div><div class="editor-pane">
-  <div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
-  <div class="editor-wrap"><textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea><div class="highlight-layer" id="outputHL"></div></div>
+<div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
+<div class="editor-wrap"><textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea><div class="highlight-layer" id="outputHL"></div></div>
 </div></div>
-
 <div class="panel" id="panel-diff"><div class="editor-pane">
-  <div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
-  <div class="diff-output" id="diffOutput"></div>
+<div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
+<div class="diff-output" id="diffOutput"></div>
 </div></div>
-
 <div class="panel" id="panel-sandbox"><div class="sandbox">
-  <div class="sandbox-row"><label><span id="t-sb-from">From:</span></label><input id="sbFrom" placeholder="literal or /regex/"><label><input type="checkbox" id="sbRegex">Regex</label><label><input type="checkbox" id="sbCase">Aa</label></div>
-  <div class="sandbox-row"><label><span id="t-sb-to">To:</span></label><input id="sbTo" placeholder="replacement"></div>
-  <div class="sandbox-row"><label><span id="t-sb-test">Test text:</span></label><button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button><button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button></div>
-  <div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
+<div class="sandbox-row"><label><span id="t-sb-from">From:</span></label><input id="sbFrom" placeholder="literal or /regex/"><label><input type="checkbox" id="sbRegex">Regex</label><label><input type="checkbox" id="sbCase">Aa</label></div>
+<div class="sandbox-row"><label><span id="t-sb-to">To:</span></label><input id="sbTo" placeholder="replacement"></div>
+<div class="sandbox-row"><label><span id="t-sb-test">Test text:</span></label><button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button><button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button></div>
+<div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
 </div></div>
-
 <div class="panel" id="panel-batch"><div class="batch">
-  <div class="sandbox-row"><button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button><button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button><button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button></div>
-  <div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
+<div class="sandbox-row"><button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button><button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button><button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button></div>
+<div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
 </div></div>
-
 <div class="modal-overlay" id="presetModal"><div class="modal">
-  <div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
-  <div class="modal-body" id="presetList"></div>
-  <div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
+<div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
+<div class="modal-body" id="presetList"></div>
+<div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
 </div></div>
-
 <input type="file" id="fileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <div class="toast-container" id="toastContainer"></div>
-
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/processor.js" integrity="sha384-4hJnGrDyRI81X0A6K1ZaF4VzAhG3i/HhPuL7vA/7U1K8dS6ZENaMhM+zii3PQJdU" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/rules.js" integrity="sha384-eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/sandbox.js" integrity="sha384-lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/app.js" integrity="sha384-cQw3sZLyCSx5NmrIzuOWU2b3I4Us8+tnzOb7ahnl/5NQPSsYW6B+MqVjQgy0NlJI" crossorigin="anonymous"></script>
-
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/processor.js" integrity="sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/rules.js" integrity="sha384-eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/sandbox.js" integrity="sha384-lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.5/js/app.js" integrity="sha384-f4PrXcHe8v9Rf2ThVLV1L5PZhKJJ/2iDr4Cs9PB8OHeMIPXSLMUWZ9RYIp85WXsm" crossorigin="anonymous"></script>
 <script>
 // ─── Simple version-based cache busting (replaces entire hash-check system) ───
 (function(){
-  var VERSION = document.querySelector('meta[name="version"]').content;
-  var stored = localStorage.getItem('tr-version');
-  if (stored && stored !== VERSION) {
-    // Version changed → clear old caches, unregister SW
-    console.log('App updated:', stored, '→', VERSION);
-    if (navigator.serviceWorker) {
-      navigator.serviceWorker.getRegistrations().then(function(rs){
-        rs.forEach(function(r){ r.unregister(); });
-      });
-    }
-    // Clear any old app caches if you use Cache API
-    if (window.caches) {
-      caches.keys().then(function(names){
-        names.forEach(function(n){ caches.delete(n); });
-      });
-    }
-  }
-  localStorage.setItem('tr-version', VERSION);
+var VERSION = document.querySelector('meta[name="version"]').content;
+var stored = localStorage.getItem('tr-version');
+if (stored && stored !== VERSION) {
+// Version changed → clear old caches, unregister SW
+console.log('App updated:', stored, '→', VERSION);
+if (navigator.serviceWorker) {
+navigator.serviceWorker.getRegistrations().then(function(rs){
+rs.forEach(function(r){ r.unregister(); });
+});
+}
+// Clear any old app caches if you use Cache API
+if (window.caches) {
+caches.keys().then(function(names){
+names.forEach(function(n){ caches.delete(n); });
+});
+}
+}
+localStorage.setItem('tr-version', VERSION);
+})();
+</script>
+<!-- Version footer -->
+<div id="versionFooter" style="text-align:center;padding:6px;font-size:11px;color:#555;background:#252526;border-top:1px solid #3c3c3c;">
+Text Replacer <span id="vfVersion"></span>
+</div>
+<script>
+(function(){
+var v = document.querySelector('meta[name="version"]');
+if(v && document.getElementById('vfVersion')) document.getElementById('vfVersion').textContent = v.content;
 })();
 </script>
 </body>
