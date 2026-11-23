@@ -1,16 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome</title>
-  <style>
-    body { font-family: system-ui; max-width: 800px; margin: 4rem auto; padding: 0 2rem; }
-    h1 { color: #0969da; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="version" content="v1.0.0">
+<title>Text Replacer</title>
+<link rel="stylesheet" href="css/app.css" integrity="sha384-vPhzh3Q7WoI3hK5BTdkbwuZAokvcuoJ9SmO9bqiWtVc1UlV/E3Hg7Sia9ZQyjZ99" crossorigin="anonymous">
 </head>
 <body>
-  <h1>🚀 Site is live</h1>
-  <p>Push changes to this branch and GitHub Pages updates automatically.</p>
+
+<div class="header">
+  <h1><span id="t-title">Text</span> Replacer</h1>
+  <div class="toolbar">
+    <button id="btnUndo" title="Ctrl+Z"><span id="t-undo">↩ Undo</span></button>
+    <button id="btnRedo" title="Ctrl+Y"><span id="t-redo">↪ Redo</span></button>
+    <button id="btnCopy"><span id="t-copy">📋 Copy</span></button>
+    <button id="btnDownload"><span id="t-dl">💾 Save</span></button>
+    <button id="btnLoad"><span id="t-load">📂 Load</span></button>
+    <button id="btnPreset"><span id="t-preset">📦 Presets</span></button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-panel="rules"><span id="t-tab-rules">🔄 Rules</span></div>
+  <div class="tab" data-panel="editor"><span id="t-tab-edit">📝 Editor</span></div>
+  <div class="tab" data-panel="diff"><span id="t-tab-diff">🔍 Diff</span></div>
+  <div class="tab" data-panel="sandbox"><span id="t-tab-sand">🧪 Sandbox</span></div>
+  <div class="tab" data-panel="batch"><span id="t-tab-batch">📦 Batch</span></div>
+</div>
+
+<!-- RULES -->
+<div class="panel active" id="panel-rules">
+  <div class="rules-panel">
+    <div class="rules-toolbar">
+      <input type="text" id="ruleSearch" placeholder="Search rules...">
+      <button id="addRule">+ <span id="t-add">Add</span></button>
+      <button id="clearRules"><span id="t-clear">Clear</span></button>
+      <button id="importRules"><span id="t-import">Import</span></button>
+      <button id="exportRules"><span id="t-export">Export</span></button>
+    </div>
+    <div class="rules-list" id="rulesList"></div>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div class="panel" id="panel-editor">
+  <div class="editor-pane">
+    <div class="pane-header"><span id="t-input">📥 Input</span><span class="stats" id="inputStats">0</span></div>
+    <div class="editor-wrap">
+      <textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea>
+      <div class="highlight-layer" id="inputHL"></div>
+    </div>
+  </div>
+  <div class="editor-pane">
+    <div class="pane-header"><span id="t-output">📤 Output</span><span class="stats" id="outputStats">0</span></div>
+    <div class="editor-wrap">
+      <textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea>
+      <div class="highlight-layer" id="outputHL"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DIFF -->
+<div class="panel" id="panel-diff">
+  <div class="editor-pane">
+    <div class="pane-header"><span id="t-diff">🔍 Diff</span><span class="stats" id="diffStats">0</span></div>
+    <div class="diff-output" id="diffOutput"></div>
+  </div>
+</div>
+
+<!-- SANDBOX -->
+<div class="panel" id="panel-sandbox">
+  <div class="sandbox">
+    <div class="sandbox-row">
+      <label><span id="t-sb-from">From:</span></label>
+      <input id="sbFrom" placeholder="literal or /regex/">
+      <label><input type="checkbox" id="sbRegex">Regex</label>
+      <label><input type="checkbox" id="sbCase">Aa</label>
+    </div>
+    <div class="sandbox-row">
+      <label><span id="t-sb-to">To:</span></label>
+      <input id="sbTo" placeholder="replacement">
+    </div>
+    <div class="sandbox-row">
+      <label><span id="t-sb-test">Test text:</span></label>
+      <button id="sbRun" class="btn-primary"><span id="t-sb-run">▶ Run</span></button>
+      <button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button>
+    </div>
+    <div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
+  </div>
+</div>
+
+<!-- BATCH -->
+<div class="panel" id="panel-batch">
+  <div class="batch">
+    <div class="sandbox-row">
+      <button id="batchAdd" class="btn-primary"><span id="t-bt-add">+ Add Files</span></button>
+      <button id="batchRun" class="btn-success"><span id="t-bt-run">▶ Process All</span></button>
+      <button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button>
+    </div>
+    <div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
+  </div>
+</div>
+
+<!-- PRESET MODAL -->
+<div class="modal-overlay" id="presetModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">✕</button></div>
+    <div class="modal-body" id="presetList"></div>
+    <div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">💾 Save Current</span></button></div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
+<input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- HASH CHECK + DYNAMIC LOAD -->
+<script src="js/i18n.js"></script>
+<script src="js/state.js"></script>
+<script src="js/processor.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/sandbox.js"></script>
+<script src="js/batch.js"></script>
+<script src="js/presets.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function(){
+  var files = [
+    'css/app.css',
+    'js/i18n.js','js/state.js','js/processor.js','js/rules.js',
+    'js/editor.js','js/sandbox.js','js/batch.js','js/presets.js','js/ui.js','js/app.js'
+  ];
+  var version = document.querySelector('meta[name="version"]').content;
+  var checks = {
+    'css/app.css':'Phzh3Q7WoI3hK5BT','js/i18n.js':'DTzVBmf9tJRcbbPI','js/state.js':'jZzFyJtBySUz1Si+','js/processor.js':'hJnGrDyRI81X0A6K',
+    'js/rules.js':'P9LuS1oROIl16WY4','js/editor.js':'6JIMbXNi8MbPw+cU','js/sandbox.js':'WEa+XZSWvBxEitHr','js/batch.js':'K+7Pmzz6a1rnxV2+',
+    'js/presets.js':'l0hcKHX9hVI3dPta','js/ui.js':'b/AF0LZU8Rfes0mQ','js/app.js':'ArWpbDnB/ZmwyQVB'
+  };
+  function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return h.toString(36)}
+  function checkAll(){
+    var loaded=0;
+    files.forEach(function(f){
+      fetch(f+'?v='+version,{cache:'no-cache'}).then(function(r){return r.text()}).then(function(t){
+        checks[f]=hashStr(t);loaded++;
+        if(loaded===files.length){
+          var stored=JSON.parse(localStorage.getItem('tr-hashes')||'{}');
+          var changed=[];
+          Object.keys(checks).forEach(function(k){if(stored[k]&&stored[k]!==checks[k])changed.push(k)});
+          if(changed.length){
+            console.log('Updated files:',changed);
+            localStorage.setItem('tr-hashes',JSON.stringify(checks));
+            if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister()})});
+          } else if(!stored['js/app.js']){
+            localStorage.setItem('tr-hashes',JSON.stringify(checks));
+          }
+        }
+      });
+    });
+  }
+  if(window.location.protocol!=='file:')checkAll();
+})();
+</script>
 </body>
 </html>
