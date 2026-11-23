@@ -18,7 +18,7 @@ if (typeof TR_I18N !== 'undefined' && TR_I18N._) { var v = TR_I18N._(k); if (v !
 return (isZh() ? D.zh : D.en)[k] || k;
 }
 
-// ─── Toast (non-blocking, no alert) ───
+// ─── Toast ───
 function showToast(msg) {
   var existing = document.getElementById('simpleToast');
   if (existing) existing.remove();
@@ -38,8 +38,8 @@ var style = document.createElement('style');
 style.textContent = `
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fdf2f8, #faf5ff); margin: 0; padding: 0; min-height: 100vh; }
 #simpleMode { display: block !important; padding: 16px; max-width: 600px; margin: 0 auto; padding-top: env(safe-area-inset-top, 60px); padding-bottom: 80px !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
-.simple-container h2 { display: flex; align-items: center; justify-content: center; gap: 10px; color: #ec4899; margin-bottom: 16px; }
-.simple-container h2 .advanced-link { font-size: 12px; font-weight: 500; color: #999; text-decoration: none; padding: 4px 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; transition: all .2s; white-space: nowrap; }
+.simple-container h2 { position: relative; display: flex; align-items: center; justify-content: center; color: #ec4899; margin-bottom: 16px; min-height: 32px; }
+.simple-container h2 .advanced-link { position: absolute; right: 0; font-size: 11px; font-weight: 500; color: #999; text-decoration: none; padding: 3px 8px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb; transition: all .2s; white-space: nowrap; }
 .simple-container h2 .advanced-link:hover { background: #f3f4f6; color: #666; border-color: #d1d5db; }
 .simple-rule-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
 .simple-rule-row input { flex: 1; padding: 8px 12px; border: 2px solid #fbcfe8; border-radius: 12px; font-size: 14px; }
@@ -138,7 +138,7 @@ container.appendChild(row);
 row.querySelector('.simple-remove-rule').onclick = function() { row.remove(); updateRemove(); };
 }
 
-// ─── Save Rules → download JSON file ───
+// ─── Save Rules ───
 document.getElementById('simpleSaveRules').onclick = function() {
 var data = gatherRules();
 var name = prompt(isZh() ? '规则集名称:' : 'Ruleset name:', 'my-rules');
@@ -152,7 +152,7 @@ URL.revokeObjectURL(a.href);
 showToast(_t('rulesExported'));
 };
 
-// ─── Load Rules → file picker ───
+// ─── Load Rules ───
 document.getElementById('simpleLoadRules').onclick = function() {
 document.getElementById('simpleRulesFileInput').click();
 };
@@ -160,10 +160,8 @@ document.getElementById('simpleRulesFileInput').onchange = function() {
 var f = this.files[0]; if (!f) return;
 var reader = new FileReader();
 reader.onload = function(e) {
-try {
-applyRulesData(JSON.parse(e.target.result));
-showToast(_t('rulesImported'));
-} catch(err) { showToast('Invalid JSON'); }
+try { applyRulesData(JSON.parse(e.target.result)); showToast(_t('rulesImported')); }
+catch(err) { showToast('Invalid JSON'); }
 };
 reader.readAsText(f);
 this.value = '';

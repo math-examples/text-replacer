@@ -314,13 +314,11 @@ if (batchFileInput) {
 bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
 
 // ═══════════════════════════════════════════════════════
-// STEP 7b+7c: Unified Event Delegation
-// Handles: Import / Export / Mode Switching (arrow ↔ simple)
+// STEP 7b+7c: Hardened Event Delegation (no freeze)
 // ═══════════════════════════════════════════════════════
 (function() {
   'use strict';
 
-  // ── Persistent hidden file input for import ──
   var importInput = document.getElementById('tr-import-rules-input');
   if (!importInput) {
     importInput = document.createElement('input');
@@ -331,43 +329,75 @@ bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
     document.body.appendChild(importInput);
   }
 
-  // ── Handle file import ──
+  var isImporting = false; // prevent double-trigger freeze
+
   importInput.addEventListener('change', function() {
+    if (isImporting) return;
     var f = this.files[0]; if (!f) return;
+    isImporting = true;
+
     var reader = new FileReader();
     reader.onload = function(e) {
       try {
-        var data = typeof e.target.result === 'string' ? JSON.parse(e.target.result) : e.target.result;
+        var raw = e.target.result;
+        var data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+
+        // Try importing — support multiple formats
         if (typeof TR_RULES !== 'undefined') {
-          if (typeof TR_RULES.importRules === 'function') TR_RULES.importRules(data);
-          else if (typeof TR_RULES.loadRules === 'function') TR_RULES.loadRules(data);
-          else if (typeof TR_RULES.setRules === 'function') TR_RULES.setRules(data.rules || data);
-        }
-        setTimeout(function() {
-          if (typeof TR_UI !== 'undefined') {
-            ['renderRules','updateRules','refreshRules','drawRules','render','refresh']
-              .forEach(function(m) { if (typeof TR_UI[m] === 'function') TR_UI[m](); });
+          if (typeof TR_RULES.importRules === 'function') {
+            try { TR_RULES.importRules(data); }
+            catch(err1) {
+              try { TR_RULES.importRules(raw); } // try raw string
+              catch(err2) { console.warn('[TR] importRules failed with both object and string'); }
+            }
+          } else if (typeof TR_RULES.setRules === 'function') {
+            TR_RULES.setRules(data.rules || data);
+          } else if (typeof TR_RULES.loadRules === 'function') {
+            TR_RULES.loadRules(data);
           }
-          document.dispatchEvent(new CustomEvent('tr:rules-imported'));
-          if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('✅ Rules imported');
-        }, 80);
-      } catch(err) {
-        console.error('[TR] Import failed:', err);
-        if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('❌ Import failed');
+        }
+
+        // Update state directly as fallback
+        if (typeof TR_STATE !== 'undefined' && data.rules) {
+          TR_STATE.rules = data.rules;
+        }
+
+        // Render — with safety delay and error catching
+        setTimeout(function() {
+          try {
+            if (typeof TR_UI !== 'undefined') {
+              var rendered = false;
+              ['renderRules','updateRules','refreshRules','drawRules','render','refresh'].forEach(function(m) {
+                if (!rendered && typeof TR_UI[m] === 'function') { TR_UI[m](); rendered = true; }
+              });
+            }
+            document.dispatchEvent(new CustomEvent('tr:rules-imported'));
+            if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('✅ Rules imported');
+            else console.log('[TR] Rules imported');
+          } catch(renderErr) {
+            console.error('[TR] Render after import failed:', renderErr);
+          } finally {
+            isImporting = false;
+          }
+        }, 100);
+
+      } catch(parseErr) {
+        console.error('[TR] Import parse failed:', parseErr);
+        isImporting = false;
       }
     };
+    reader.onerror = function() { isImporting = false; };
     reader.readAsText(f);
     this.value = '';
   });
 
-  // ── Export function ──
+  // Export
   function doExport() {
     try {
       var data = {};
       if (typeof TR_RULES !== 'undefined') {
         if (typeof TR_RULES.exportRules === 'function') data = TR_RULES.exportRules();
         else if (typeof TR_RULES.getRules === 'function') data = { rules: TR_RULES.getRules() };
-        else if (typeof TR_RULES.saveRules === 'function') data = TR_RULES.saveRules();
       }
       var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       var a = document.createElement('a');
@@ -376,75 +406,47 @@ bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
       if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('📤 Rules exported');
-    } catch(err) {
-      console.error('[TR] Export failed:', err);
-      if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('❌ Export failed');
-    }
+    } catch(err) { console.error('[TR] Export failed:', err); }
   }
 
-  // ── Mode switch functions ──
-  function goToSimpleMode(e) {
-    if (e) e.preventDefault();
-    var url = new URL(location.href);
-    url.searchParams.delete('advanced');
-    location.href = url.pathname + (url.search ? url.search : '') + location.hash;
-  }
-  function goToAdvancedMode(e) {
-    if (e) e.preventDefault();
-    var url = new URL(location.href);
-    url.searchParams.set('advanced', '1');
-    location.href = url.pathname + url.search + location.hash;
-  }
+  // Mode switches
+  function goToSimpleMode(e) { if(e) e.preventDefault(); var u=new URL(location.href); u.searchParams.delete('advanced'); location.href=u.pathname+(u.search?u.search:'')+location.hash; }
+  function goToAdvancedMode(e) { if(e) e.preventDefault(); var u=new URL(location.href); u.searchParams.set('advanced','1'); location.href=u.pathname+u.search+location.hash; }
 
-  // ── Unified Event Delegation (capture phase) ──
+  // Single delegated handler — capture phase, with guard
   document.addEventListener('click', function(e) {
+    if (isImporting) return; // ignore clicks while importing
     var el = e.target;
     while (el && el !== document) {
       if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute('role') === 'button') {
-        var txt = (el.textContent || el.innerText || '').toLowerCase();
-        var id = (el.id || '').toLowerCase();
-        var cls = (el.className || '').toLowerCase();
-        var title = (el.getAttribute('title') || '').toLowerCase();
-        var html = (el.innerHTML || '').toLowerCase();
+        var txt = (el.textContent||el.innerText||'').toLowerCase();
+        var id = (el.id||'').toLowerCase();
+        var cls = (el.className||'').toLowerCase();
+        var title = (el.getAttribute('title')||'').toLowerCase();
 
-        // ── Import ──
-        if (txt.includes('import') || id.includes('import') || cls.includes('import') || title.includes('import') || html.includes('import')) {
+        if (txt.includes('import')||id.includes('import')||cls.includes('import')||title.includes('import')) {
           e.preventDefault(); e.stopPropagation();
           importInput.click();
           return;
         }
-        // ── Export ──
-        if (txt.includes('export') || id.includes('export') || cls.includes('export') || title.includes('export') || html.includes('export')) {
+        if (txt.includes('export')||id.includes('export')||cls.includes('export')||title.includes('export')) {
           e.preventDefault(); e.stopPropagation();
           doExport();
           return;
         }
-        // ── Arrow / Simple mode switch ──
-        // Matches: ← Simple, ⇐ Simple, < simple, arrow buttons, data-mode="simple"
-        if (el.matches('[data-mode="simple"]') || 
-            ((txt.includes('←') || txt.includes('⇐') || txt.includes('<') || txt.includes('arrow')) && txt.includes('simple')) ||
-            id.includes('simple') && (txt.includes('←') || txt.includes('<')) ||
-            title.includes('simple') && (title.includes('←') || title.includes('<'))) {
-          e.preventDefault(); e.stopPropagation();
-          goToSimpleMode();
-          return;
+        if (el.matches('[data-mode="simple"]') || ((txt.includes('←')||txt.includes('<')) && txt.includes('simple'))) {
+          e.preventDefault(); e.stopPropagation(); goToSimpleMode(); return;
         }
-        // ── Advanced mode switch ──
-        if (el.matches('[data-mode="advanced"]') ||
-            ((txt.includes('→') || txt.includes('⇒') || txt.includes('>') || txt.includes('arrow')) && txt.includes('advanced')) ||
-            id.includes('advanced') && (txt.includes('→') || txt.includes('>'))) {
-          e.preventDefault(); e.stopPropagation();
-          goToAdvancedMode();
-          return;
+        if (el.matches('[data-mode="advanced"]') || ((txt.includes('→')||txt.includes('>')) && txt.includes('advanced'))) {
+          e.preventDefault(); e.stopPropagation(); goToAdvancedMode(); return;
         }
       }
       el = el.parentElement;
     }
-  }, true); // capture phase
+  }, true);
 
-  console.log('[TR] Unified event delegation active ✅ (Import/Export/ModeSwitch)');
+  console.log('[TR] Hardened event delegation active ✅');
 })();
-
 // ─── STEP 8: Preset modal ───
 var presetModal = document.getElementById('presetModal');
 if (presetModal) {
