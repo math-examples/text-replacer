@@ -4,14 +4,16 @@ Text Replacer — Simple Mode (Girly Edition 🌸)
 (function () {
 'use strict';
 
-var ADV_KEY = 'tr-advanced';
+// ─── Mode detection via URL only ───
+var params = new URLSearchParams(location.search);
+var isAdvanced = params.get('advanced') === '1';
 
-// ─── Language helper (uses shared TR_LANG) ───
+// ─── Language helper ───
 function isZh() {
   return window.TR_LANG === 'zh' || (navigator.language || '').toLowerCase().indexOf('zh') === 0;
 }
 
-// ─── Embedded fallback dict (used if key missing from TR_I18N) ───
+// ─── Embedded dict ───
 var FALLBACK = {
   zh: {
     find: '查找 ✨', replace: '替换为 💖', advanced: '进入高级模式 🚀',
@@ -31,14 +33,11 @@ var FALLBACK = {
   }
 };
 
-// ─── i18n helper with proper fallback ───
 function _t(k) {
-  // Try global TR_I18N first
   if (typeof TR_I18N !== 'undefined' && TR_I18N._) {
     var val = TR_I18N._(k);
-    if (val !== k) return val; // key was found in dict
+    if (val !== k) return val;
   }
-  // Fallback to embedded dict
   return (isZh() ? FALLBACK.zh : FALLBACK.en)[k] || k;
 }
 
@@ -47,23 +46,21 @@ function setVersion() {
   var vMeta = document.querySelector('meta[name="version"]');
   var v = vMeta ? vMeta.content : 'v1.0.15';
   var tv = document.getElementById('topVersion');
-  var hv = document.getElementById('headerVersion');
   if (tv) tv.textContent = v;
-  if (hv) hv.textContent = v;
 }
 
-// ─── Cute toast ───
+// ─── Toast ───
 function showCuteToast(msg) {
   if (typeof TR_UI !== 'undefined' && TR_UI.toast) { TR_UI.toast(msg); return; }
   var t = document.createElement('div');
   t.textContent = msg;
   t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) scale(0.9);background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all .3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 24px rgba(236,72,153,0.4);';
   document.body.appendChild(t);
-  requestAnimationFrame(function(){ t.style.opacity='1'; t.style.transform='translateX(-50%) scale(1)'; });
-  setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) scale(0.9)'; setTimeout(function(){ document.body.removeChild(t); }, 300); }, 2000);
+  requestAnimationFrame(function () { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) scale(1)'; });
+  setTimeout(function () { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) scale(0.9)'; setTimeout(function () { document.body.removeChild(t); }, 300); }, 2000);
 }
 
-// ─── Apply i18n to a single element ───
+// ─── i18n element ───
 function applyI18nToEl(el) {
   if (!el) return;
   if (el.classList.contains('simpleFrom')) el.placeholder = _t('find');
@@ -72,13 +69,10 @@ function applyI18nToEl(el) {
   if (el.id === 'simpleOutput') el.placeholder = _t('simpleOutput');
 }
 
-// ─── Apply i18n to all static elements ───
 function applyI18n() {
   var title = document.querySelector('.simple-container h2');
   if (title) title.innerHTML = '<span>' + _t('simpleTitle') + '</span>';
-
   document.querySelectorAll('.simpleFrom, .simpleTo, #simpleInput, #simpleOutput').forEach(applyI18nToEl);
-
   var map = {
     'simplePaste': 'simplePaste', 'simpleLoad': 'simpleLoad', 'addSimpleRule': 'simpleAdd',
     'viceVersaBtn': 'simpleViceVersa', 'simpleReplace': 'simpleReplace', 'simpleSwap': 'simpleSwap',
@@ -88,32 +82,25 @@ function applyI18n() {
     var el = document.getElementById(id);
     if (el) el.textContent = _t(map[id]);
   }
-
-  var regexLabel = document.querySelector('label[for="simpleRegex"]');
-  if (regexLabel) regexLabel.innerHTML = '<input type="checkbox" id="simpleRegex"> ' + _t('regex');
-  var caseLabel = document.querySelector('label[for="simpleCase"]');
-  if (caseLabel) caseLabel.innerHTML = '<input type="checkbox" id="simpleCase"> ' + _t('caseInsensitive');
+  var rl = document.querySelector('label[for="simpleRegex"]');
+  if (rl) rl.innerHTML = '<input type="checkbox" id="simpleRegex"> ' + _t('regex');
+  var cl = document.querySelector('label[for="simpleCase"]');
+  if (cl) cl.innerHTML = '<input type="checkbox" id="simpleCase"> ' + _t('caseInsensitive');
 }
 
-// ─── Wait for TR_I18N then apply ───
 function applyI18nWhenReady(retries) {
   retries = retries || 0;
-  if (typeof TR_I18N !== 'undefined' && TR_I18N._) {
-    applyI18n();
-  } else if (retries < 20) {
-    setTimeout(function(){ applyI18nWhenReady(retries + 1); }, 50);
-  } else {
-    applyI18n(); // fallback
-  }
+  if (typeof TR_I18N !== 'undefined' && TR_I18N._) applyI18n();
+  else if (retries < 20) setTimeout(function () { applyI18nWhenReady(retries + 1); }, 50);
+  else applyI18n();
 }
 
-// ─── MutationObserver for dynamic rule rows ───
 function observeDynamicI18n() {
   var container = document.getElementById('simpleRules');
   if (!container) return;
-  var observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(m) {
-      m.addedNodes.forEach(function(node) {
+  var observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (m) {
+      m.addedNodes.forEach(function (node) {
         if (node.nodeType === 1) {
           node.querySelectorAll && node.querySelectorAll('.simpleFrom, .simpleTo').forEach(applyI18nToEl);
           var rm = node.querySelector && node.querySelector('.simple-remove-rule');
@@ -130,112 +117,75 @@ function init() {
   var simple = document.getElementById('simpleMode');
   if (!simple) return;
 
-  var adv = localStorage.getItem(ADV_KEY) === '1';
-
-  // If advanced mode, hide simple mode entirely
-  if (adv) {
+  // If advanced mode via URL, hide simple entirely
+  if (isAdvanced) {
     simple.style.display = 'none';
     return;
   }
 
   // Show simple mode
   simple.style.display = '';
-  simple.classList.add('showing');
-  setTimeout(function(){ simple.classList.remove('showing'); }, 400);
-
-  // Set version immediately
   setVersion();
-
-  // Apply i18n (wait for TR_I18N if needed)
   applyI18nWhenReady();
   observeDynamicI18n();
 
-  // SRI toggle
-  var DISABLE_SRI = localStorage.getItem('tr_disable_sri') === '1' || new URLSearchParams(location.search).has('nohash');
-  var toggle = document.getElementById('toggleSRI');
-  if (toggle) {
-    toggle.checked = DISABLE_SRI;
-    toggle.onchange = function () {
-      localStorage.setItem('tr_disable_sri', this.checked ? '1' : '0');
-      location.reload();
-    };
-  }
-
-  // Advanced button — ALWAYS visible
+  // Advanced button → navigate with param
   var btnAdvanced = document.getElementById('simpleAdvanced');
   if (btnAdvanced) {
     btnAdvanced.style.display = 'inline-block';
-    btnAdvanced.addEventListener('click', function(){
-      localStorage.setItem(ADV_KEY, '1');
-      location.reload();
+    btnAdvanced.addEventListener('click', function () {
+      location.href = location.pathname + '?advanced=1' + location.hash;
     });
   }
 
-  // Multi-pair rules
-  initRules();
-
-  // Buttons
-  initButtons();
-}
-
-function initRules() {
+  // Rules
   var container = document.getElementById('simpleRules');
   var addBtn = document.getElementById('addSimpleRule');
   var viceVersaBtn = document.getElementById('viceVersaBtn');
 
   function updateRemove() {
     var rows = container.querySelectorAll('.simple-rule-row');
-    rows.forEach(function(row){
+    rows.forEach(function (row) {
       var rm = row.querySelector('.simple-remove-rule');
       if (rm) rm.style.display = rows.length > 1 ? '' : 'none';
     });
   }
 
   if (addBtn) {
-    addBtn.addEventListener('click', function(){
+    addBtn.addEventListener('click', function () {
       var row = document.createElement('div');
       row.className = 'simple-rule-row';
       row.innerHTML = '<input class="simpleFrom" placeholder="' + _t('find') + '"><span class="simple-arrow">→</span><input class="simpleTo" placeholder="' + _t('replace') + '"><button class="simple-remove-rule" title="' + (isZh() ? '删除' : 'Remove') + '">✕</button>';
       container.appendChild(row);
-      row.querySelector('.simple-remove-rule').addEventListener('click', function(){ row.remove(); updateRemove(); });
+      row.querySelector('.simple-remove-rule').addEventListener('click', function () { row.remove(); updateRemove(); });
       updateRemove();
     });
   }
-
   if (viceVersaBtn) {
-    viceVersaBtn.addEventListener('click', function(){
-      container.querySelectorAll('.simple-rule-row').forEach(function(row){
-        var from = row.querySelector('.simpleFrom');
-        var to = row.querySelector('.simpleTo');
+    viceVersaBtn.addEventListener('click', function () {
+      container.querySelectorAll('.simple-rule-row').forEach(function (row) {
+        var from = row.querySelector('.simpleFrom'), to = row.querySelector('.simpleTo');
         if (from && to) { var tmp = from.value; from.value = to.value; to.value = tmp; }
       });
     });
   }
-
   updateRemove();
-}
 
-function initButtons() {
-  var inp = document.getElementById('simpleInput');
-  var out = document.getElementById('simpleOutput');
-  var regexEl = document.getElementById('simpleRegex');
-  var caseEl = document.getElementById('simpleCase');
+  // Buttons
+  var inp = document.getElementById('simpleInput'), out = document.getElementById('simpleOutput');
+  var regexEl = document.getElementById('simpleRegex'), caseEl = document.getElementById('simpleCase');
 
   function doReplace() {
     var text = inp.value;
-    var regex = regexEl && regexEl.checked;
-    var casei = caseEl && caseEl.checked;
+    var regex = regexEl && regexEl.checked, casei = caseEl && caseEl.checked;
     if (!text) { out.value = ''; return; }
-    document.querySelectorAll('.simple-rule-row').forEach(function(row){
-      var from = row.querySelector('.simpleFrom').value;
-      var to = row.querySelector('.simpleTo').value;
+    container.querySelectorAll('.simple-rule-row').forEach(function (row) {
+      var from = row.querySelector('.simpleFrom').value, to = row.querySelector('.simpleTo').value;
       if (!from) return;
       try {
-        var re = regex
-          ? new RegExp(from, 'g' + (casei ? 'i' : ''))
-          : new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g' + (casei ? 'i' : ''));
+        var re = regex ? new RegExp(from, 'g' + (casei ? 'i' : '')) : new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g' + (casei ? 'i' : ''));
         text = text.replace(re, to);
-      } catch(e) { text = 'Regex error: ' + e.message; }
+      } catch (e) { text = 'Regex error: ' + e.message; }
     });
     out.value = text;
   }
@@ -245,56 +195,40 @@ function initButtons() {
   if (inp) inp.addEventListener('input', doReplace);
 
   var btnPaste = document.getElementById('simplePaste');
-  if (btnPaste && inp) {
-    btnPaste.addEventListener('click', function(){
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        navigator.clipboard.readText().then(function(t){ inp.value = t; inp.focus(); doReplace(); }).catch(function(){ inp.focus(); document.execCommand('paste'); });
-      } else { inp.focus(); document.execCommand('paste'); }
-    });
-  }
+  if (btnPaste && inp) btnPaste.addEventListener('click', function () {
+    if (navigator.clipboard && navigator.clipboard.readText) navigator.clipboard.readText().then(function (t) { inp.value = t; inp.focus(); doReplace(); }).catch(function () { inp.focus(); document.execCommand('paste'); });
+    else { inp.focus(); document.execCommand('paste'); }
+  });
 
-  var btnLoad = document.getElementById('simpleLoad');
-  var fileInput = document.getElementById('simpleFileInput');
+  var btnLoad = document.getElementById('simpleLoad'), fileInput = document.getElementById('simpleFileInput');
   if (btnLoad && fileInput && inp) {
-    btnLoad.addEventListener('click', function(){ fileInput.click(); });
-    fileInput.addEventListener('change', function(){
+    btnLoad.addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () {
       var f = this.files[0]; if (!f) return;
       var r = new FileReader();
-      r.onload = function(e){ inp.value = e.target.result; inp.focus(); doReplace(); };
+      r.onload = function (e) { inp.value = e.target.result; inp.focus(); doReplace(); };
       r.readAsText(f, 'UTF-8'); this.value = '';
     });
   }
 
   var btnSwap = document.getElementById('simpleSwap');
-  if (btnSwap) btnSwap.addEventListener('click', function(){ var tmp = inp.value; inp.value = out.value; out.value = tmp; });
+  if (btnSwap) btnSwap.addEventListener('click', function () { var tmp = inp.value; inp.value = out.value; out.value = tmp; });
 
   var btnCopy = document.getElementById('simpleCopy');
-  if (btnCopy) {
-    btnCopy.addEventListener('click', function(){
-      if (!out.value) return;
-      out.select();
-      document.execCommand('copy');
-      var orig = btnCopy.textContent;
-      btnCopy.textContent = '💖 ' + _t('copied');
-      setTimeout(function(){ btnCopy.textContent = orig; }, 1500);
-    });
-  }
+  if (btnCopy) btnCopy.addEventListener('click', function () {
+    if (!out.value) return; out.select(); document.execCommand('copy');
+    var orig = btnCopy.textContent; btnCopy.textContent = '💖 ' + _t('copied'); setTimeout(function () { btnCopy.textContent = orig; }, 1500);
+  });
 
   var btnDownload = document.getElementById('simpleDownload');
-  if (btnDownload) {
-    btnDownload.addEventListener('click', function(){
-      var blob = new Blob([out.value || ''], { type: 'text/plain;charset=utf-8' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'output.txt'; a.click();
-      showCuteToast('💾 ' + _t('saved'));
-    });
-  }
+  if (btnDownload) btnDownload.addEventListener('click', function () {
+    var blob = new Blob([out.value || ''], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'output.txt'; a.click();
+    showCuteToast('💾 ' + _t('saved'));
+  });
 }
 
 // ─── Boot ───
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
 })();
