@@ -1,6 +1,9 @@
 /* ===== js/i18n.js ===== */
 var TR_I18N = (function(){
-var lang = navigator.language && navigator.language.startsWith('zh') ? 'zh' : 'en';
+// ─── Detect language (bulletproof) ───
+var rawLang = (navigator.language || navigator.userLanguage || navigator.browserLanguage || 'en').toLowerCase();
+var lang = rawLang.indexOf('zh') === 0 ? 'zh' : 'en';
+
 var dict = {
 en: {
 title:'Text ✨', undo:'↩ Undo', redo:'↪ Redo', copy:'📋 Copy', dl:'💾 Save', load:'📂 Load', preset:'📦 Presets',
@@ -13,7 +16,6 @@ preTitle:'Presets', preSave:'💾 Save Current', preName:'Preset name:', preDel:
 search:'Search rules...', chars:'chars', changes:'changes',
 copied:'💖 Copied!', saved:'💾 Saved!', loaded:'📂 Loaded', undone:'↩ Undone', redone:'↪ Redone',
 noRules:'No rules match search', batchDone:'✅ All files processed', batchEmpty:'No files in queue',
-// Simple mode extras
 simpleTitle:'Text Replacer', find:'Find ✨', replace:'Replace with 💖', advanced:'Go to Advanced Mode 🚀'
 },
 zh: {
@@ -27,16 +29,26 @@ preTitle:'预设规则', preSave:'💾 保存当前', preName:'预设名称:', p
 search:'搜索规则...', chars:'字符', changes:'处变更',
 copied:'💖 已复制', saved:'💾 已保存', loaded:'📂 已加载', undone:'↩ 已撤销', redone:'↪ 已重做',
 noRules:'无匹配规则', batchDone:'✅ 所有文件处理完成', batchEmpty:'队列为空',
-// Simple mode extras
 simpleTitle:'文本替换器', find:'查找 ✨', replace:'替换为 💖', advanced:'进入高级模式 🚀'
 }
 };
 function _(k){ return (dict[lang] && dict[lang][k]) || dict.en[k] || k; }
-function apply(){ document.querySelectorAll('[id^="t-"]').forEach(function(el){ var key = el.id.replace(/^t-/,'');
-var val = _(key.charAt(0).toLowerCase()+key.slice(1)); if(val) el.textContent = val; });
-var t = document.getElementById('t-title'); if(t) t.textContent = _('title');
-var s = document.getElementById('ruleSearch'); if(s) s.placeholder = _('search');
-var sr = document.getElementById('sbResult'); if(sr) sr.innerHTML = '<span class="placeholder">'+_('sbResult')+'</span>';
+function apply(){
+  document.querySelectorAll('[id^="t-"]').forEach(function(el){
+    var key = el.id.replace(/^t-/,'');
+    var val = _(key.charAt(0).toLowerCase()+key.slice(1));
+    if(val) el.textContent = val;
+  });
+  var t = document.getElementById('t-title'); if(t) t.textContent = _('title');
+  var s = document.getElementById('ruleSearch'); if(s) s.placeholder = _('search');
+  var sr = document.getElementById('sbResult'); if(sr) sr.innerHTML = '<span class="placeholder">'+_('sbResult')+'</span>';
 }
 return { _: _, apply: apply, lang: lang };
 })();
+
+// Apply on load — immediately if DOM ready, otherwise wait
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ if(TR_I18N.apply) TR_I18N.apply(); });
+} else {
+  TR_I18N.apply();
+}

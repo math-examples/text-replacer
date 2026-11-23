@@ -1,20 +1,54 @@
 /* ═══════════════════════════════════════════
-Text Replacer — Simple Mode Logic (Girly Edition 🌸)
+Text Replacer — Simple Mode (Girly Edition 🌸)
 ═══════════════════════════════════════════ */
 (function () {
 'use strict';
 
-// ─── i18n helpers ───
-function _t(k) {
-  if (typeof TR_I18N !== 'undefined' && TR_I18N._) return TR_I18N._(k);
-  return k;
+var ADV_KEY = 'tr-advanced';
+
+// ─── Language detection (bulletproof) ───
+function isZh() {
+  var l = (navigator.language || navigator.userLanguage || navigator.browserLanguage || 'en').toLowerCase();
+  return l.indexOf('zh') === 0;
 }
 
-// ─── Cute toast (girly) ───
+// ─── i18n helper ───
+function _t(k) {
+  // Prefer global TR_I18N if available
+  if (typeof TR_I18N !== 'undefined' && TR_I18N._) return TR_I18N._(k);
+  // Fallback dict with correct language
+  var zh = {
+    find: '查找 ✨', replace: '替换为 💖', advanced: '进入高级模式 🚀',
+    simpleTitle: '文本替换器', simpleInput: '粘贴或输入文本...', simpleOutput: '结果将显示在这里...',
+    simplePaste: '📋 粘贴', simpleLoad: '📂 加载', simpleAdd: '+ 添加规则',
+    simpleViceVersa: '⇄ 全部交换', simpleReplace: '✨ 替换！', simpleSwap: '⇄ 交换',
+    simpleCopy: '📋 复制', simpleDownload: '💾 下载',
+    regex: '正则', caseInsensitive: '忽略大小写', copied: '💖 已复制', saved: '💾 已保存'
+  };
+  var en = {
+    find: 'Find ✨', replace: 'Replace with 💖', advanced: 'Go to Advanced Mode 🚀',
+    simpleTitle: 'Text Replacer', simpleInput: 'Paste or type text here...', simpleOutput: 'Result appears here...',
+    simplePaste: '📋 Paste', simpleLoad: '📂 Load', simpleAdd: '+ Add Rule',
+    simpleViceVersa: '⇄ Swap All', simpleReplace: '✨ Replace!', simpleSwap: '⇄ Swap',
+    simpleCopy: '📋 Copy', simpleDownload: '💾 Download',
+    regex: 'Regex', caseInsensitive: 'Aa', copied: '💖 Copied!', saved: '💾 Saved!'
+  };
+  return (isZh() ? zh : en)[k] || k;
+}
+
+// ─── Version ───
+function setVersion() {
+  var vMeta = document.querySelector('meta[name="version"]');
+  var v = vMeta ? vMeta.content : 'v1.0.15';
+  var tv = document.getElementById('topVersion');
+  var hv = document.getElementById('headerVersion');
+  if (tv) tv.textContent = v;
+  if (hv) hv.textContent = v;
+}
+
+// ─── Cute toast ───
 function showCuteToast(msg) {
-  // Try full UI toast first
   if (typeof TR_UI !== 'undefined' && TR_UI.toast) { TR_UI.toast(msg); return; }
-  // Fallback cute toast
   var t = document.createElement('div');
   t.textContent = msg;
   t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) scale(0.9);background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all .3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 24px rgba(236,72,153,0.4);';
@@ -23,118 +57,163 @@ function showCuteToast(msg) {
   setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) scale(0.9)'; setTimeout(function(){ document.body.removeChild(t); }, 300); }, 2000);
 }
 
-// ─── Version from meta ───
-var vMeta = document.querySelector('meta[name="version"]');
-var VERSION = vMeta ? vMeta.content : 'v1.0.9';
-var tv = document.getElementById('topVersion');
-var hv = document.getElementById('headerVersion');
-if (tv) tv.textContent = VERSION;
-if (hv) hv.textContent = VERSION;
+// ─── Apply i18n to a single element ───
+function applyI18nToEl(el) {
+  if (!el) return;
+  if (el.classList.contains('simpleFrom')) el.placeholder = _t('find');
+  if (el.classList.contains('simpleTo')) el.placeholder = _t('replace');
+  if (el.id === 'simpleInput') el.placeholder = _t('simpleInput');
+  if (el.id === 'simpleOutput') el.placeholder = _t('simpleOutput');
+}
 
-// ─── SRI Toggle ───
-var DISABLE_SRI = localStorage.getItem('tr_disable_sri') === '1' || new URLSearchParams(location.search).has('nohash');
-var toggle = document.getElementById('toggleSRI');
-if (toggle) {
-  toggle.checked = DISABLE_SRI;
-  toggle.onchange = function () {
-    localStorage.setItem('tr_disable_sri', this.checked ? '1' : '0');
-    location.reload();
+// ─── Apply i18n to all static elements ───
+function applyI18n() {
+  // Title
+  var title = document.querySelector('.simple-container h2');
+  if (title) title.innerHTML = '<span>' + _t('simpleTitle') + '</span>';
+
+  // Textareas & all rule inputs
+  document.querySelectorAll('.simpleFrom, .simpleTo, #simpleInput, #simpleOutput').forEach(applyI18nToEl);
+
+  // Buttons by ID
+  var map = {
+    'simplePaste': 'simplePaste', 'simpleLoad': 'simpleLoad', 'addSimpleRule': 'simpleAdd',
+    'viceVersaBtn': 'simpleViceVersa', 'simpleReplace': 'simpleReplace', 'simpleSwap': 'simpleSwap',
+    'simpleCopy': 'simpleCopy', 'simpleDownload': 'simpleDownload', 'simpleAdvanced': 'advanced'
   };
+  for (var id in map) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = _t(map[id]);
+  }
+
+  // Checkbox labels (rebuild to keep inputs)
+  var regexLabel = document.querySelector('label[for="simpleRegex"]');
+  if (regexLabel) regexLabel.innerHTML = '<input type="checkbox" id="simpleRegex"> ' + _t('regex');
+  var caseLabel = document.querySelector('label[for="simpleCase"]');
+  if (caseLabel) caseLabel.innerHTML = '<input type="checkbox" id="simpleCase"> ' + _t('caseInsensitive');
 }
 
-// ─── Advanced / Simple toggle ───
-var simpleMode = document.getElementById('simpleMode');
-var fullUI = document.getElementById('fullUI');
-var btnAdvanced = document.getElementById('simpleAdvanced');
-var btnBackSimple = document.getElementById('btnBackSimple');
-
-function showAdvanced() { simpleMode.style.display = 'none'; fullUI.style.display = 'block'; window.scrollTo(0, 0); }
-function showSimple() { simpleMode.style.display = ''; fullUI.style.display = 'none'; window.scrollTo(0, 0); }
-
-if (btnAdvanced) btnAdvanced.addEventListener('click', showAdvanced);
-if (btnBackSimple) btnBackSimple.addEventListener('click', showSimple);
-
-// ─── Apply i18n ───
-function applySimpleI18n() {
-  var simpleFrom = document.getElementById('simpleFrom');
-  var simpleTo = document.getElementById('simpleTo');
-  if (simpleFrom) simpleFrom.placeholder = _t('find') || 'Find';
-  if (simpleTo) simpleTo.placeholder = _t('replace') || 'Replace';
-}
-setTimeout(applySimpleI18n, 0);
-
-// ─── Paste button ───
-var btnPaste = document.getElementById('simplePaste');
-var simpleInput = document.getElementById('simpleInput');
-if (btnPaste && simpleInput) {
-  btnPaste.addEventListener('click', function () {
-    if (navigator.clipboard && navigator.clipboard.readText) {
-      navigator.clipboard.readText().then(function (text) { simpleInput.value = text; simpleInput.focus(); })
-      .catch(function () { simpleInput.focus(); document.execCommand('paste'); });
-    } else { simpleInput.focus(); document.execCommand('paste'); }
-  });
-}
-
-// ─── Load from local file ───
-var btnLoad = document.getElementById('simpleLoad');
-var simpleFileInput = document.getElementById('simpleFileInput');
-if (btnLoad && simpleFileInput) {
-  btnLoad.addEventListener('click', function () { simpleFileInput.click(); });
-  simpleFileInput.addEventListener('change', function () {
-    var file = this.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function (e) { simpleInput.value = e.target.result; simpleInput.focus(); };
-    reader.readAsText(file, 'UTF-8');
-    this.value = '';
-  });
-}
-
-// ─── Multi-pair rules logic ───
-var rulesContainer = document.getElementById('simpleRules');
-var addRuleBtn = document.getElementById('addSimpleRule');
-var viceVersaBtn = document.getElementById('viceVersaBtn');
-var simpleRegex = document.getElementById('simpleRegex');
-var simpleCase = document.getElementById('simpleCase');
-
-function updateRemoveButtons() {
-  var rows = rulesContainer.querySelectorAll('.simple-rule-row');
-  rows.forEach(function (row) {
-    var rm = row.querySelector('.simple-remove-rule');
-    if (rm) rm.style.display = rows.length > 1 ? '' : 'none';
-  });
-}
-
-if (addRuleBtn) {
-  addRuleBtn.addEventListener('click', function () {
-    var row = document.createElement('div');
-    row.className = 'simple-rule-row';
-    row.innerHTML = '<input class="simpleFrom" placeholder="' + (_t('find') || 'Find') + '"><span class="simple-arrow">→</span><input class="simpleTo" placeholder="' + (_t('replace') || 'Replace') + '"><button class="simple-remove-rule" title="Remove">✕</button>';
-    rulesContainer.appendChild(row);
-    row.querySelector('.simple-remove-rule').addEventListener('click', function () { row.remove(); updateRemoveButtons(); });
-    updateRemoveButtons();
-  });
-}
-
-if (viceVersaBtn) {
-  viceVersaBtn.addEventListener('click', function () {
-    rulesContainer.querySelectorAll('.simple-rule-row').forEach(function (row) {
-      var from = row.querySelector('.simpleFrom');
-      var to = row.querySelector('.simpleTo');
-      if (from && to) { var tmp = from.value; from.value = to.value; to.value = tmp; }
+// ─── MutationObserver for dynamic rule rows ───
+function observeDynamicI18n() {
+  var container = document.getElementById('simpleRules');
+  if (!container) return;
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) { // element
+          // Translate the row's inputs
+          node.querySelectorAll && node.querySelectorAll('.simpleFrom, .simpleTo').forEach(applyI18nToEl);
+          // Also translate the remove button if present
+          var rm = node.querySelector && node.querySelector('.simple-remove-rule');
+          if (rm) rm.title = isZh() ? '删除' : 'Remove';
+        }
+      });
     });
   });
+  observer.observe(container, { childList: true });
 }
 
-// ─── Replace ───
-var btnReplace = document.getElementById('simpleReplace');
-var simpleOutput = document.getElementById('simpleOutput');
-if (btnReplace) {
-  btnReplace.addEventListener('click', function () {
-    var result = simpleInput.value;
-    var regex = simpleRegex && simpleRegex.checked;
-    var casei = simpleCase && simpleCase.checked;
-    rulesContainer.querySelectorAll('.simple-rule-row').forEach(function (row) {
+// ─── Init ───
+function init() {
+  var simple = document.getElementById('simpleMode');
+  if (!simple) return;
+
+  // Set version immediately
+  setVersion();
+
+  // If user previously chose advanced, hide simple mode entirely
+  if (localStorage.getItem(ADV_KEY) === '1') {
+    simple.style.display = 'none';
+    return; // Stop here — don't init simple UI
+  }
+
+  // Show simple mode
+  simple.classList.add('showing');
+  setTimeout(function(){ simple.classList.remove('showing'); }, 400);
+
+  // Apply i18n (with retry in case TR_I18N loads late)
+  applyI18n();
+  observeDynamicI18n();
+  // Retry once after a short delay to catch late-loading TR_I18N
+  setTimeout(applyI18n, 100);
+
+  // SRI toggle
+  var DISABLE_SRI = localStorage.getItem('tr_disable_sri') === '1' || new URLSearchParams(location.search).has('nohash');
+  var toggle = document.getElementById('toggleSRI');
+  if (toggle) {
+    toggle.checked = DISABLE_SRI;
+    toggle.onchange = function () {
+      localStorage.setItem('tr_disable_sri', this.checked ? '1' : '0');
+      location.reload();
+    };
+  }
+
+  // Advanced button — ALWAYS visible, forced display
+  var btnAdvanced = document.getElementById('simpleAdvanced');
+  if (btnAdvanced) {
+    btnAdvanced.style.display = 'inline-block';
+    btnAdvanced.addEventListener('click', function(){
+      localStorage.setItem(ADV_KEY, '1');
+      location.reload();
+    });
+  }
+
+  // Multi-pair rules
+  initRules();
+
+  // Buttons
+  initButtons();
+}
+
+function initRules() {
+  var container = document.getElementById('simpleRules');
+  var addBtn = document.getElementById('addSimpleRule');
+  var viceVersaBtn = document.getElementById('viceVersaBtn');
+
+  function updateRemove() {
+    var rows = container.querySelectorAll('.simple-rule-row');
+    rows.forEach(function(row){
+      var rm = row.querySelector('.simple-remove-rule');
+      if (rm) rm.style.display = rows.length > 1 ? '' : 'none';
+    });
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener('click', function(){
+      var row = document.createElement('div');
+      row.className = 'simple-rule-row';
+      row.innerHTML = '<input class="simpleFrom" placeholder="' + _t('find') + '"><span class="simple-arrow">→</span><input class="simpleTo" placeholder="' + _t('replace') + '"><button class="simple-remove-rule" title="' + (isZh() ? '删除' : 'Remove') + '">✕</button>';
+      container.appendChild(row);
+      row.querySelector('.simple-remove-rule').addEventListener('click', function(){ row.remove(); updateRemove(); });
+      updateRemove();
+    });
+  }
+
+  if (viceVersaBtn) {
+    viceVersaBtn.addEventListener('click', function(){
+      container.querySelectorAll('.simple-rule-row').forEach(function(row){
+        var from = row.querySelector('.simpleFrom');
+        var to = row.querySelector('.simpleTo');
+        if (from && to) { var tmp = from.value; from.value = to.value; to.value = tmp; }
+      });
+    });
+  }
+
+  updateRemove();
+}
+
+function initButtons() {
+  var inp = document.getElementById('simpleInput');
+  var out = document.getElementById('simpleOutput');
+  var regexEl = document.getElementById('simpleRegex');
+  var caseEl = document.getElementById('simpleCase');
+
+  function doReplace() {
+    var text = inp.value;
+    var regex = regexEl && regexEl.checked;
+    var casei = caseEl && caseEl.checked;
+    if (!text) { out.value = ''; return; }
+    document.querySelectorAll('.simple-rule-row').forEach(function(row){
       var from = row.querySelector('.simpleFrom').value;
       var to = row.querySelector('.simpleTo').value;
       if (!from) return;
@@ -142,69 +221,72 @@ if (btnReplace) {
         var re = regex
           ? new RegExp(from, 'g' + (casei ? 'i' : ''))
           : new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g' + (casei ? 'i' : ''));
-        result = result.replace(re, to);
-      } catch (e) { result = 'Regex error: ' + e.message; }
+        text = text.replace(re, to);
+      } catch(e) { text = 'Regex error: ' + e.message; }
     });
-    simpleOutput.value = result;
-  });
-}
-
-// ─── Swap ───
-var btnSwap = document.getElementById('simpleSwap');
-if (btnSwap) {
-  btnSwap.addEventListener('click', function () {
-    var tmp = simpleInput.value;
-    simpleInput.value = simpleOutput.value;
-    simpleOutput.value = tmp;
-  });
-}
-
-// ─── Copy ───
-var btnCopy = document.getElementById('simpleCopy');
-if (btnCopy) {
-  btnCopy.addEventListener('click', function () {
-    if (!simpleOutput.value) return;
-    simpleOutput.select();
-    document.execCommand('copy');
-    var origHTML = btnCopy.innerHTML;
-    btnCopy.textContent = '💖 ' + (_t('copied') || 'Copied!');
-    setTimeout(function () { btnCopy.innerHTML = origHTML; }, 1500);
-  });
-}
-
-// ─── Download ───
-var btnDownload = document.getElementById('simpleDownload');
-if (btnDownload) {
-  btnDownload.addEventListener('click', function () {
-    var blob = new Blob([simpleOutput.value || ''], { type: 'text/plain;charset=utf-8' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'output.txt';
-    a.click();
-    showCuteToast('💾 ' + (_t('saved') || 'Saved!'));
-  });
-}
-
-// ─── Load verification ───
-setTimeout(function () {
-  var errors = window.__scriptLoadErrors || [];
-  var missingGlobals = [];
-  if (typeof TR_I18N === 'undefined') missingGlobals.push('TR_I18N');
-  if (typeof TR_STATE === 'undefined') missingGlobals.push('TR_STATE');
-  if (typeof TR_PROCESSOR === 'undefined') missingGlobals.push('TR_PROCESSOR');
-  if (typeof TR_RULES === 'undefined') missingGlobals.push('TR_RULES');
-  if (typeof TR_UI === 'undefined') missingGlobals.push('TR_UI');
-  if (errors.length > 0 || missingGlobals.length > 0) {
-    var banner = document.getElementById('loadErrorBanner');
-    var msg = document.getElementById('loadErrorMsg');
-    if (banner && msg) {
-      var parts = [];
-      if (errors.length > 0) parts.push('Failed to load: ' + errors.join(', '));
-      if (missingGlobals.length > 0) parts.push('Missing objects: ' + missingGlobals.join(', '));
-      parts.push('Check your internet connection, verify the version tag, or run ./setup.sh to update SRI hashes.');
-      msg.innerHTML = parts.join('<br>');
-      banner.style.display = 'block';
-    }
+    out.value = text;
   }
-}, 800);
+
+  var btnReplace = document.getElementById('simpleReplace');
+  if (btnReplace) btnReplace.addEventListener('click', doReplace);
+  if (inp) inp.addEventListener('input', doReplace);
+
+  // Paste
+  var btnPaste = document.getElementById('simplePaste');
+  if (btnPaste && inp) {
+    btnPaste.addEventListener('click', function(){
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(function(t){ inp.value = t; inp.focus(); doReplace(); }).catch(function(){ inp.focus(); document.execCommand('paste'); });
+      } else { inp.focus(); document.execCommand('paste'); }
+    });
+  }
+
+  // Load file
+  var btnLoad = document.getElementById('simpleLoad');
+  var fileInput = document.getElementById('simpleFileInput');
+  if (btnLoad && fileInput && inp) {
+    btnLoad.addEventListener('click', function(){ fileInput.click(); });
+    fileInput.addEventListener('change', function(){
+      var f = this.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e){ inp.value = e.target.result; inp.focus(); doReplace(); };
+      r.readAsText(f, 'UTF-8'); this.value = '';
+    });
+  }
+
+  // Swap
+  var btnSwap = document.getElementById('simpleSwap');
+  if (btnSwap) btnSwap.addEventListener('click', function(){ var tmp = inp.value; inp.value = out.value; out.value = tmp; });
+
+  // Copy
+  var btnCopy = document.getElementById('simpleCopy');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', function(){
+      if (!out.value) return;
+      out.select();
+      document.execCommand('copy');
+      var orig = btnCopy.textContent;
+      btnCopy.textContent = '💖 ' + _t('copied');
+      setTimeout(function(){ btnCopy.textContent = orig; }, 1500);
+    });
+  }
+
+  // Download
+  var btnDownload = document.getElementById('simpleDownload');
+  if (btnDownload) {
+    btnDownload.addEventListener('click', function(){
+      var blob = new Blob([out.value || ''], { type: 'text/plain;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'output.txt'; a.click();
+      showCuteToast('💾 ' + _t('saved'));
+    });
+  }
+}
+
+// ─── Boot ───
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 })();
