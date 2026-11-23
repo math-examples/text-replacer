@@ -1,25 +1,22 @@
 /* ===== js/rules.js ===== */
-var TR_RULES = (function () {
+var TR_RULES = (function(){
     'use strict';
 
-    // ─── ID generator (no dependency on TR_STATE.nextId) ───
     function genId() {
         return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
     }
 
-    // ─── Default rule factory ───
-    function createRule(opts) {
+    function normalizeRule(r) {
         return {
-            id: (opts && opts.id) || genId(),
-            from: (opts && opts.from !== undefined) ? opts.from : '',
-            to: (opts && opts.to !== undefined) ? opts.to : '',
-            regex: !!(opts && opts.regex),
-            case: !!(opts && opts.case),
-            enabled: (opts && opts.enabled !== undefined) ? !!opts.enabled : true
+            id: r.id || genId(),
+            from: r.from || '',
+            to: r.to || '',
+            regex: !!r.regex,
+            case: !!r.case,
+            enabled: (r.enabled !== undefined) ? !!r.enabled : true
         };
     }
 
-    // ─── Escape HTML attribute ───
     function escAttr(s) {
         return (s || '').toString()
             .replace(/&/g, '&amp;')
@@ -28,8 +25,7 @@ var TR_RULES = (function () {
             .replace(/>/g, '&gt;');
     }
 
-    // ─── Render rule list ───
-    function render() {
+    function render(){
         var list = document.getElementById('rulesList');
         var searchEl = document.getElementById('ruleSearch');
         var q = (searchEl && searchEl.value || '').toLowerCase();
@@ -37,12 +33,9 @@ var TR_RULES = (function () {
         if (!list) return;
         list.innerHTML = '';
 
-        if (!TR_STATE || !Array.isArray(TR_STATE.rules)) {
-            list.innerHTML = '<div style="color:#888;padding:8px;font-size:12px;">No rules available</div>';
-            return;
-        }
+        if (!TR_STATE || !Array.isArray(TR_STATE.rules)) return;
 
-        var filtered = TR_STATE.rules.filter(function (r) {
+        var filtered = TR_STATE.rules.filter(function(r){
             var hay = ((r.from || '') + ' ' + (r.to || '')).toLowerCase();
             return !q || hay.indexOf(q) !== -1;
         });
@@ -55,11 +48,10 @@ var TR_RULES = (function () {
             return;
         }
 
-        filtered.forEach(function (rule) {
+        filtered.forEach(function(rule){
             var row = document.createElement('div');
             row.className = 'rule-row' + (rule.enabled ? '' : ' disabled');
 
-            // ─── Toggles ───
             var toggles = document.createElement('div');
             toggles.className = 'rule-toggles';
             toggles.innerHTML =
@@ -67,7 +59,6 @@ var TR_RULES = (function () {
                 '<label><input type="checkbox" data-act="regex" ' + (rule.regex ? 'checked' : '') + '>re</label>' +
                 '<label><input type="checkbox" data-act="case" ' + (rule.case ? 'checked' : '') + '>Aa</label>';
 
-            // ─── Fields ───
             var fields = document.createElement('div');
             fields.className = 'rule-fields';
             fields.innerHTML =
@@ -75,7 +66,6 @@ var TR_RULES = (function () {
                 '<div class="arrow">↓</div>' +
                 '<input data-fld="to" value="' + escAttr(rule.to) + '" placeholder="Replace">';
 
-            // ─── Remove button ───
             var removeBtn = document.createElement('button');
             removeBtn.className = 'rule-remove';
             removeBtn.dataset.act = 'remove';
@@ -85,9 +75,8 @@ var TR_RULES = (function () {
             row.appendChild(fields);
             row.appendChild(removeBtn);
 
-            // ─── Toggle events ───
-            toggles.querySelectorAll('input').forEach(function (inp) {
-                inp.addEventListener('change', function () {
+            toggles.querySelectorAll('input').forEach(function(inp){
+                inp.addEventListener('change', function(){
                     if (this.dataset.act === 'enabled') rule.enabled = this.checked;
                     if (this.dataset.act === 'regex') rule.regex = this.checked;
                     if (this.dataset.act === 'case') rule.case = this.checked;
@@ -96,18 +85,16 @@ var TR_RULES = (function () {
                 });
             });
 
-            // ─── Input events ───
-            fields.querySelectorAll('input').forEach(function (inp) {
-                inp.addEventListener('input', function () {
+            fields.querySelectorAll('input').forEach(function(inp){
+                inp.addEventListener('input', function(){
                     if (this.dataset.fld === 'from') rule.from = this.value;
                     if (this.dataset.fld === 'to') rule.to = this.value;
                     if (TR_UI && TR_UI.process) TR_UI.process();
                 });
             });
 
-            // ─── Remove event ───
-            removeBtn.addEventListener('click', function () {
-                TR_STATE.rules = TR_STATE.rules.filter(function (r) { return r.id !== rule.id; });
+            removeBtn.addEventListener('click', function(){
+                TR_STATE.rules = TR_STATE.rules.filter(function(r){ return r.id !== rule.id; });
                 render();
                 if (TR_UI && TR_UI.process) TR_UI.process();
             });
@@ -116,15 +103,13 @@ var TR_RULES = (function () {
         });
     }
 
-    // ─── Add rule ───
-    function addRule(rule) {
+    function addRule(rule){
         if (!TR_STATE.rules) TR_STATE.rules = [];
-        TR_STATE.rules.push(createRule(rule));
+        TR_STATE.rules.push(normalizeRule(rule));
         render();
     }
 
-    // ─── Clear all rules ───
-    function clearRules() {
+    function clearRules(){
         if (confirm('Clear all rules?')) {
             TR_STATE.rules = [];
             render();
@@ -132,27 +117,23 @@ var TR_RULES = (function () {
         }
     }
 
-    // ─── Get rules ───
-    function getRules() {
+    function getRules(){
         return TR_STATE.rules || [];
     }
 
-    // ─── Set rules (with normalization) ───
-    function setRules(arr) {
+    function setRules(arr){
         if (!Array.isArray(arr)) return;
-        TR_STATE.rules = arr.map(function (r) { return createRule(r); });
+        TR_STATE.rules = arr.map(normalizeRule);
         render();
     }
 
-    // ─── Export rules ───
-    function exportRules() {
+    function exportRules(){
         return JSON.stringify({ rules: getRules(), version: '1.0.32' }, null, 2);
     }
 
-    // ─── Import rules (accepts string or object) ───
-    function importRules(data) {
+    function importRules(data){
         try {
-            var parsed = typeof data === 'string' ? JSON.parse(data) : data;
+            var parsed = (typeof data === 'string') ? JSON.parse(data) : data;
             var rules = parsed.rules || parsed;
             if (Array.isArray(rules)) {
                 setRules(rules);
@@ -164,7 +145,6 @@ var TR_RULES = (function () {
         return false;
     }
 
-    // ─── Public API ───
     return {
         render: render,
         addRule: addRule,
