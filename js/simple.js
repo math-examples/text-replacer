@@ -18,6 +18,18 @@ if (typeof TR_I18N !== 'undefined' && TR_I18N._) { var v = TR_I18N._(k); if (v !
 return (isZh() ? D.zh : D.en)[k] || k;
 }
 
+// ─── Toast (non-blocking, no alert) ───
+function showToast(msg) {
+  var existing = document.getElementById('simpleToast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'simpleToast';
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.97);color:#be185d;border:1.5px solid rgba(244,114,182,0.3);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(236,72,153,0.2);z-index:2147483647;animation:slideUp .2s ease;';
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 2500);
+}
+
 // ─── Remove advanced elements ───
 document.querySelectorAll('#app, .app-container, .app, main, .container, .tabs-container, .editor-container, .rules-panel, .editor-panel, .diff-panel, .sandbox-panel, .batch-panel, .header, .footer, .toolbar, [class*="tab"]:not(.simple-tab), [class*="advanced"]').forEach(function(el) { el.remove(); });
 
@@ -25,7 +37,7 @@ document.querySelectorAll('#app, .app-container, .app, main, .container, .tabs-c
 var style = document.createElement('style');
 style.textContent = `
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fdf2f8, #faf5ff); margin: 0; padding: 0; min-height: 100vh; }
-#simpleMode { display: block !important; padding: 16px; max-width: 600px; margin: 0 auto; padding-top: env(safe-area-inset-top, 60px); padding-bottom: env(safe-area-inset-bottom, 60px); }
+#simpleMode { display: block !important; padding: 16px; max-width: 600px; margin: 0 auto; padding-top: env(safe-area-inset-top, 60px); padding-bottom: 80px !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 .simple-container h2 { text-align: center; color: #ec4899; margin-bottom: 16px; }
 .simple-rule-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
 .simple-rule-row input { flex: 1; padding: 8px 12px; border: 2px solid #fbcfe8; border-radius: 12px; font-size: 14px; }
@@ -41,6 +53,7 @@ textarea { width: 100%; min-height: 100px; padding: 12px; border: 2px solid #fbc
 .simple-checkbox-row { display: flex; gap: 12px; align-items: center; margin: 8px 0; font-size: 13px; flex-wrap: wrap; }
 .simple-checkbox-row label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 #simpleAdvancedBtn { position: fixed !important; bottom: max(16px, env(safe-area-inset-bottom)) !important; right: max(16px, env(safe-area-inset-right)) !important; z-index: 2147483647 !important; display: inline-block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; background: linear-gradient(135deg, #ec4899, #a855f7) !important; color: #fff !important; border: none !important; border-radius: 24px !important; padding: 12px 20px !important; font-size: 14px !important; font-weight: 700 !important; cursor: pointer !important; box-shadow: 0 6px 20px rgba(236,72,153,0.5) !important; }
+@keyframes slideUp { from{transform:translateX(-50%) translateY(20px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;} }
 `;
 document.head.appendChild(style);
 
@@ -127,7 +140,7 @@ container.appendChild(row);
 row.querySelector('.simple-remove-rule').onclick = function() { row.remove(); updateRemove(); };
 }
 
-// ─── Save Rules → download JSON file (NO cache) ───
+// ─── Save Rules → download JSON file ───
 document.getElementById('simpleSaveRules').onclick = function() {
 var data = gatherRules();
 var name = prompt(isZh() ? '规则集名称:' : 'Ruleset name:', 'my-rules');
@@ -138,10 +151,10 @@ a.href = URL.createObjectURL(blob);
 a.download = name.replace(/[^a-z0-9_-]/gi, '_') + '.json';
 a.click();
 URL.revokeObjectURL(a.href);
-alert(_t('rulesExported'));
+showToast(_t('rulesExported'));
 };
 
-// ─── Load Rules → file picker (NO cache) ───
+// ─── Load Rules → file picker ───
 document.getElementById('simpleLoadRules').onclick = function() {
 document.getElementById('simpleRulesFileInput').click();
 };
@@ -151,8 +164,8 @@ var reader = new FileReader();
 reader.onload = function(e) {
 try {
 applyRulesData(JSON.parse(e.target.result));
-alert(_t('rulesImported'));
-} catch(err) { alert('Invalid JSON file'); }
+showToast(_t('rulesImported'));
+} catch(err) { showToast('Invalid JSON'); }
 };
 reader.readAsText(f);
 this.value = '';

@@ -313,6 +313,42 @@ if (batchFileInput) {
 }
 bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
 
+// ─── STEP 7b: Rules Import / Export ───
+(function(){
+  // Hidden file input for importing rules
+  var rulesImportInput = document.createElement('input');
+  rulesImportInput.type = 'file';
+  rulesImportInput.accept = '.json';
+  rulesImportInput.style.display = 'none';
+  document.body.appendChild(rulesImportInput);
+
+  rulesImportInput.onchange = function() {
+    var f = this.files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        if (TR_RULES && TR_RULES.importRules) TR_RULES.importRules(e.target.result);
+        if (TR_UI && TR_UI.toast) TR_UI.toast('Rules imported');
+      } catch(err) { console.error('[TR] Import failed:', err); }
+    };
+    reader.readAsText(f);
+    this.value = '';
+  };
+
+  if (TR_RULES) {
+    bind('importRules', function() { rulesImportInput.click(); });
+    bind('exportRules', function() {
+      var data = TR_RULES.exportRules ? TR_RULES.exportRules() : JSON.stringify(TR_STATE.rules, null, 2);
+      var blob = new Blob([data], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'rules.json';
+      a.click();
+      if (TR_UI && TR_UI.toast) TR_UI.toast('Rules exported');
+    });
+  }
+})();
+
 // ─── STEP 8: Preset modal ───
 var presetModal = document.getElementById('presetModal');
 if (presetModal) {
