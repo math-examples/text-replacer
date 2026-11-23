@@ -117,6 +117,14 @@ for f in "${ASSETS[@]}"; do
   sedi "/${fname}/ s|integrity=\"[^\"]*\"|integrity=\"${sri_esc}\"|" index.html
 done
 
+# --- 6. Update SRI_MAP in inline loader ---
+for f in "${ASSETS[@]}"; do
+  sri="${SRI[$f]:-}"
+  [ -n "$sri" ] || continue
+  # Escape for JS string (no slashes issue)
+  sedi "s|\"${f}\": \"[^\"]*\"|\"${f}\": \"${sri}\"|" index.html
+done
+
 # ============ DIFF SUMMARY ============
 echo ""
 echo "📝 Changes:"

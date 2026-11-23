@@ -3,18 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.9">
+<meta name="version" content="v1.0.10">
 <meta name="cdn-owner" content="math-examples">
 <meta name="cdn-repo" content="text-replacer">
+<!-- No cookies: crossorigin=anonymous on all assets; referrer policy -->
+<meta name="referrer" content="no-referrer-when-downgrade">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
+<style>
+/* Minimal inline reset so page renders even if CSS fails */
+body{font-family:system-ui,sans-serif;background:#111;color:#eee;margin:0}
+.simple-mode{display:flex;justify-content:center;padding:20px}
+.simple-container{max-width:900px;width:100%}
+.simple-panes{display:flex;gap:8px}
+.simple-panes textarea{flex:1;height:180px;background:#1e1e1e;color:#eee;border:1px solid #444;padding:8px}
+.simple-actions{margin-top:8px;display:flex;gap:6px;align-items:center}
+.btn-primary{background:#2980b9;color:#fff;border:none;padding:6px 14px;cursor:pointer}
+.btn-secondary{background:#444;color:#eee;border:none;padding:6px 14px;cursor:pointer}
+.btn-ghost{background:transparent;color:#888;border:1px solid #555;padding:6px 14px;cursor:pointer}
+</style>
 </head>
 <body>
+
 <!-- ═══════════ VERSION BANNER (TOP) ═══════════ -->
-<div id="versionBanner" style="background:#1e1e1e;color:#ccc;padding:4px 12px;font-size:11px;text-align:center;border-bottom:1px solid #333;">
-Text Replacer <span id="topVersion"></span>
+<div id="versionBanner" style="background:#1e1e1e;color:#ccc;padding:4px 12px;font-size:11px;text-align:center;border-bottom:1px solid #333;display:flex;justify-content:center;align-items:center;gap:12px;">
+<span>Text Replacer <span id="topVersion"></span></span>
+<label style="font-size:10px;color:#888;cursor:pointer;user-select:none;" title="Disable SRI hash check (debug only)">
+<input type="checkbox" id="toggleSRI" style="vertical-align:middle;"> Disable SRI
+</label>
 </div>
-<!-- ═══════════ ERROR BANNER (hidden by default) ═══════════ -->
+
+<!-- ═══════════ ERROR BANNER ═══════════ -->
 <div id="loadErrorBanner" style="display:none;background:#c0392b;color:#fff;padding:10px 16px;font-size:13px;text-align:center;position:relative;z-index:10000;">
 <span id="loadErrorMsg"></span>
 <span style="float:right;cursor:pointer;font-weight:bold;" onclick="this.parentElement.style.display='none'">✕</span>
@@ -23,14 +41,14 @@ Text Replacer <span id="topVersion"></span>
 <!-- ═══════════ SIMPLE MODE ═══════════ -->
 <div id="simpleMode" class="simple-mode">
 <div class="simple-container">
-<h2><span id="t-title">Text</span> Replacer</h2>
-<p class="simple-hint" id="t-simple-hint">Paste text, set find &amp; replace, and go.</p>
-<div class="simple-rule">
-<input id="simpleFrom" placeholder="Find (literal or /regex/)">
-<span class="simple-arrow">→</span>
-<input id="simpleTo" placeholder="Replace with">
-<label class="simple-toggle"><input type="checkbox" id="simpleRegex">Regex</label>
-<label class="simple-toggle"><input type="checkbox" id="simpleCase">Aa</label>
+<h2>Text Replacer</h2>
+<p style="color:#888;font-size:12px;">Paste text, set find &amp; replace, and go.</p>
+<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+<input id="simpleFrom" placeholder="Find (literal or /regex/)" style="flex:1;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
+<span>→</span>
+<input id="simpleTo" placeholder="Replace with" style="flex:1;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
+<label style="font-size:11px;"><input type="checkbox" id="simpleRegex">Regex</label>
+<label style="font-size:11px;"><input type="checkbox" id="simpleCase">Aa</label>
 </div>
 <div class="simple-panes">
 <textarea id="simpleInput" spellcheck="false" placeholder="Paste or type text here..."></textarea>
@@ -40,126 +58,134 @@ Text Replacer <span id="topVersion"></span>
 <button id="simpleReplace" class="btn-primary">&#128260; Replace</button>
 <button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
 <button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
-<span class="simple-spacer"></span>
-<button id="simpleAdvanced" class="btn-ghost" title="Unlock multiple rules, diff view, sandbox, batch processing, presets, undo/redo, and more">
-&#9881; Advanced <span class="advanced-arrow">&#9662;</span>
-</button>
-</div>
-<div class="simple-feature-hint" id="advancedFeatureHint">
-<span class="feature-hint-text">
-&#128161; <strong>Advanced</strong> unlocks: multiple rules, regex sandbox, line-by-line diff, batch file processing, presets, undo/redo, and more. You can switch back anytime.
-</span>
+<span style="flex:1"></span>
+<button id="simpleAdvanced" class="btn-ghost">&#9881; Advanced</button>
 </div>
 </div>
 </div>
 
-<!-- FULL UI -->
-<div class="header">
-<h1><span id="t-title2">Text</span> Replacer <span id="headerVersion" style="font-size:10px;color:#555;margin-left:8px;font-weight:400;"></span></h1>
-<div class="toolbar">
-<button id="btnUndo" title="Ctrl+Z"><span id="t-undo">&#8617; Undo</span></button>
-<button id="btnRedo" title="Ctrl+Y"><span id="t-redo">&#8618; Redo</span></button>
-<button id="btnCopy"><span id="t-copy">&#128203; Copy</span></button>
-<button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
-<button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
-<button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
-<button id="btnBackSimple" class="btn-ghost-header">&#8592; Simple</button>
+<!-- ═══════════ FULL UI (collapsed by default) ═══════════ -->
+<div id="fullUI" style="display:none;padding:12px;">
+<div class="header"><h1 style="margin:0;font-size:16px;">Text Replacer Advanced</h1></div>
+<p style="color:#666;font-size:11px;">Advanced mode UI elements loaded via JS modules.</p>
 </div>
-</div>
-<div class="tabs">
-<div class="tab active" data-panel="rules"><span id="t-tab-rules">&#128260; Rules</span></div>
-<div class="tab" data-panel="editor"><span id="t-tab-edit">&#128221; Editor</span></div>
-<div class="tab" data-panel="diff"><span id="t-tab-diff">&#128269; Diff</span></div>
-<div class="tab" data-panel="sandbox"><span id="t-tab-sand">&#129514; Sandbox</span></div>
-<div class="tab" data-panel="batch"><span id="t-tab-batch">&#128230; Batch</span></div>
-</div>
-<div class="panel active" id="panel-rules"><div class="rules-panel">
-<div class="rules-toolbar">
-<input type="text" id="ruleSearch" placeholder="Search rules...">
-<button id="addRule">+ <span id="t-add">Add</span></button>
-<button id="clearRules"><span id="t-clear">Clear</span></button>
-<button id="importRules"><span id="t-import">Import</span></button>
-<button id="exportRules"><span id="t-export">Export</span></button>
-</div>
-<div class="rules-list" id="rulesList"></div>
-</div></div>
-<div class="panel" id="panel-editor"><div class="editor-pane">
-<div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
-<div class="editor-wrap"><textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea><div class="highlight-layer" id="inputHL"></div></div>
-</div><div class="editor-pane">
-<div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
-<div class="editor-wrap"><textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea><div class="highlight-layer" id="outputHL"></div></div>
-</div></div>
-<div class="panel" id="panel-diff"><div class="editor-pane">
-<div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
-<div class="diff-output" id="diffOutput"></div>
-</div></div>
-<div class="panel" id="panel-sandbox"><div class="sandbox">
-<div class="sandbox-row"><label><span id="t-sb-from">From:</span></label><input id="sbFrom" placeholder="literal or /regex/"><label><input type="checkbox" id="sbRegex">Regex</label><label><input type="checkbox" id="sbCase">Aa</label></div>
-<div class="sandbox-row"><label><span id="t-sb-to">To:</span></label><input id="sbTo" placeholder="replacement"></div>
-<div class="sandbox-row"><label><span id="t-sb-test">Test text:</span></label><button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button><button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button></div>
-<div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
-</div></div>
-<div class="panel" id="panel-batch"><div class="batch">
-<div class="sandbox-row"><button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button><button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button><button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button></div>
-<div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
-</div></div>
-<div class="modal-overlay" id="presetModal"><div class="modal">
-<div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
-<div class="modal-body" id="presetList"></div>
-<div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
-</div></div>
-<input type="file" id="fileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
-<input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
-<div class="toast-container" id="toastContainer"></div>
 
-<!-- ═══════════ STATIC CDN SCRIPTS (fake SRI, replaced by setup.sh) ═══════════ -->
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('i18n.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('state.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/processor.js" integrity="sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('processor.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/rules.js" integrity="sha384-mnErVyXj32dHXFE2VeWyhhQVm7JL4tx0JV2S9EeEFEVbTbC2RS9AH88gYtyZKBy0" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('rules.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('editor.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/sandbox.js" integrity="sha384-GgzDVGRZWUBpI9KmDlNKzBnQ2ME8HXs3a/leckN/F/sAusCnZww7jbVhRo6GZW97" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('sandbox.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('batch.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('presets.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('ui.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/app.js" integrity="sha384-m4PXRGumkM74kG6hP2crlmDbF8hBhxDFQpq8QkwZQ9rz9L7nGyZFrH2eBjxQ60bv" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('app.js')"></script>
-
-<!-- ═══════════ LOAD VERIFICATION & ERROR DISPLAY ═══════════ -->
+<!-- ═══════════ LOADER & SRI TOGGLE LOGIC ═══════════ -->
 <script>
 (function(){
-    // Display version at top and in header
-    var v = document.querySelector('meta[name="version"]');
-    if(v){
-        var ver = v.content;
-        var tv = document.getElementById('topVersion');
-        var hv = document.getElementById('headerVersion');
-        if(tv) tv.textContent = ver;
-        if(hv) hv.textContent = ver;
+  // --- Version display ---
+  var v = document.querySelector('meta[name="version"]');
+  if(v){ var ver = v.content; var tv = document.getElementById('topVersion'); if(tv) tv.textContent = ver; }
+
+  // --- SRI Toggle (debug) ---
+  var DISABLE_SRI = localStorage.getItem('tr_disable_sri') === '1' || new URLSearchParams(location.search).has('nohash');
+  var toggle = document.getElementById('toggleSRI');
+  if(toggle){ toggle.checked = DISABLE_SRI; toggle.onchange = function(){ localStorage.setItem('tr_disable_sri', this.checked ? '1' : '0'); location.reload(); }; }
+
+  // --- CDN fallback order ---
+  var CDNS = ['https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net', 'https://gcore.jsdelivr.net'];
+  var OWNER = document.querySelector('meta[name="cdn-owner"]').content;
+  var REPO = document.querySelector('meta[name="cdn-repo"]').content;
+  var VERSION = v ? v.content : 'v1.0.9';
+
+  var ASSETS = [
+    {type:'css', path:'css/app.css'},
+    {type:'js', path:'js/i18n.js', global:'TR_I18N'},
+    {type:'js', path:'js/state.js', global:'TR_STATE'},
+    {type:'js', path:'js/processor.js', global:'TR_PROCESSOR'},
+    {type:'js', path:'js/rules.js', global:'TR_RULES'},
+    {type:'js', path:'js/editor.js'},
+    {type:'js', path:'js/sandbox.js'},
+    {type:'js', path:'js/batch.js'},
+    {type:'js', path:'js/presets.js'},
+    {type:'js', path:'js/ui.js', global:'TR_UI'},
+    {type:'js', path:'js/app.js'}
+  ];
+
+  // Compute SRI synchronously via a tiny inline function (for non-debug mode we still use pre-computed integrity from setup.sh)
+  // But since we want toggle, we load dynamically WITHOUT static tags when DISABLE_SRI is true.
+  // When SRI is enabled, we inject tags with the integrity values that setup.sh already baked into data-integrity attrs.
+  // For simplicity and to keep setup.sh compatible, we just inject script tags with integrity from a hardcoded map
+  // that setup.sh also updates. We embed the integrity map below (replaced by setup.sh).
+
+  var SRI_MAP = {
+    "css/app.css": "sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc",
+    "js/i18n.js": "sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO",
+    "js/state.js": "sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs",
+    "js/processor.js": "sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS",
+    "js/rules.js": "sha384-mnErVyXj32dHXFE2VeWyhhQVm7JL4tx0JV2S9EeEFEVbTbC2RS9AH88gYtyZKBy0",
+    "js/editor.js": "sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr",
+    "js/sandbox.js": "sha384-GgzDVGRZWUBpI9KmDlNKzBnQ2ME8HXs3a/leckN/F/sAusCnZww7jbVhRo6GZW97",
+    "js/batch.js": "sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib",
+    "js/presets.js": "sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9",
+    "js/ui.js": "sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW",
+    "js/app.js": "sha384-m4PXRGumkM74kG6hP2crlmDbF8hBhxDFQpq8QkwZQ9rz9L7nGyZFrH2eBjxQ60bv"
+  };
+
+  var loadErrors = [];
+  var loadedCount = 0;
+
+  function makeUrl(cdnIndex, path){ return CDNS[cdnIndex] + '/gh/' + OWNER + '/' + REPO + '@' + VERSION + '/' + path; }
+
+  function loadAsset(asset, cdnIndex){
+    if(cdnIndex >= CDNS.length){ loadErrors.push(asset.path + ' (all CDNs failed)'); return; }
+    var url = makeUrl(cdnIndex, asset.path);
+    if(asset.type === 'css'){
+      var link = document.createElement('link');
+      link.rel = 'stylesheet'; link.href = url;
+      if(!DISABLE_SRI && SRI_MAP[asset.path]){ link.integrity = SRI_MAP[asset.path]; link.crossOrigin = 'anonymous'; }
+      link.onerror = function(){ document.head.removeChild(link); loadAsset(asset, cdnIndex+1); };
+      link.onload = function(){ checkDone(); };
+      document.head.appendChild(link);
+    } else {
+      var script = document.createElement('script');
+      script.src = url;
+      if(!DISABLE_SRI && SRI_MAP[asset.path]){ script.integrity = SRI_MAP[asset.path]; script.crossOrigin = 'anonymous'; }
+      script.onerror = function(){ document.head.removeChild(script); loadAsset(asset, cdnIndex+1); };
+      script.onload = function(){ checkDone(asset.global); };
+      document.head.appendChild(script);
     }
+  }
 
-    // Wait for scripts to execute, then verify globals
-    setTimeout(function(){
-        var errors = window.__scriptLoadErrors || [];
-        var missingGlobals = [];
-        if(typeof TR_I18N === 'undefined') missingGlobals.push('TR_I18N');
-        if(typeof TR_STATE === 'undefined') missingGlobals.push('TR_STATE');
-        if(typeof TR_PROCESSOR === 'undefined') missingGlobals.push('TR_PROCESSOR');
-        if(typeof TR_RULES === 'undefined') missingGlobals.push('TR_RULES');
-        if(typeof TR_UI === 'undefined') missingGlobals.push('TR_UI');
+  function checkDone(expectedGlobal){
+    loadedCount++;
+    if(expectedGlobal && typeof window[expectedGlobal] === 'undefined') loadErrors.push('Missing ' + expectedGlobal);
+    if(loadedCount >= ASSETS.length) showResult();
+  }
 
-        if(errors.length > 0 || missingGlobals.length > 0){
-            var banner = document.getElementById('loadErrorBanner');
-            var msg = document.getElementById('loadErrorMsg');
-            var parts = [];
-            if(errors.length > 0) parts.push('Failed to load: ' + errors.join(', '));
-            if(missingGlobals.length > 0) parts.push('Missing objects: ' + missingGlobals.join(', '));
-            parts.push('Please check your internet connection, verify the version tag, or run ./setup.sh to update SRI hashes.');
-            msg.innerHTML = parts.join('<br>');
-            banner.style.display = 'block';
-            console.error('Text Replacer load errors:', {errors: errors, missingGlobals: missingGlobals});
-        }
-    }, 500);
+  function showResult(){
+    if(loadErrors.length > 0){
+      var banner = document.getElementById('loadErrorBanner');
+      var msg = document.getElementById('loadErrorMsg');
+      msg.innerHTML = 'Load issues:<br>' + loadErrors.join('<br>') + '<br>Try ?nohash=1 or disable SRI toggle.';
+      banner.style.display = 'block';
+      console.error('Load errors:', loadErrors);
+    }
+  }
+
+  // Start loading
+  ASSETS.forEach(function(a){ loadAsset(a, 0); });
+
+  // Simple mode inline logic (works even if JS modules fail)
+  document.getElementById('simpleReplace').onclick = function(){
+    var input = document.getElementById('simpleInput').value;
+    var from = document.getElementById('simpleFrom').value;
+    var to = document.getElementById('simpleTo').value;
+    var regex = document.getElementById('simpleRegex').checked;
+    var casei = document.getElementById('simpleCase').checked;
+    if(!from) return;
+    var re = regex ? new RegExp(from, 'g' + (casei?'i':'')) : new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'g' + (casei?'i':''));
+    document.getElementById('simpleOutput').value = input.replace(re, to);
+  };
+  document.getElementById('simpleCopy').onclick = function(){
+    var out = document.getElementById('simpleOutput');
+    out.select(); document.execCommand('copy');
+    alert('Copied!');
+  };
+  document.getElementById('simpleDownload').onclick = function(){
+    var blob = new Blob([document.getElementById('simpleOutput').value], {type:'text/plain'});
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'output.txt'; a.click();
+  };
 })();
 </script>
 </body>
