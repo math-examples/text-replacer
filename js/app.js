@@ -44,7 +44,8 @@ var to = document.getElementById('simpleTo');
 var regex = document.getElementById('simpleRegex');
 var kase = document.getElementById('simpleCase');
 if(from && from.value){
-TR_STATE.rules[0] = {id:1, from:from.value, to:to.value, regex:regex.checked, case:kase.checked, enabled:true};
+// FIXED: push a new rule instead of overwriting rules[0]
+TR_STATE.rules.push({id:TR_STATE.nextId, from:from.value, to:to.value, regex:regex.checked, case:kase.checked, enabled:true});
 if(TR_RULES && TR_RULES.render) TR_RULES.render();
 }
 if(TR_UI && TR_UI.process) TR_UI.process();
@@ -73,7 +74,6 @@ else { out.value = text; }
 var f2 = TR_PROCESSOR.unesc(f), t2 = TR_PROCESSOR.unesc(t);
 if(kase.checked){ out.value = text.split(f2).join(t2); }
 else {
-// FIXED: same bug as processor.js — don't mutate text while searching L
 var result = '';
 var lowerText = text.toLowerCase();
 var lowerFrom = f2.toLowerCase();
@@ -94,9 +94,11 @@ to.addEventListener('input', doReplace);
 regex.addEventListener('change', doReplace);
 kase.addEventListener('change', doReplace);
 document.getElementById('simpleCopy').onclick = function(){
+if(navigator.clipboard){
 navigator.clipboard.writeText(out.value).then(function(){
 if(window.TR_UI) TR_UI.toast(TR_I18N._('copied'));
 });
+} else { TR_UI.toast('Clipboard not available'); }
 };
 document.getElementById('simpleDownload').onclick = function(){
 var b = new Blob([out.value], {type:'text/plain'});
@@ -112,6 +114,7 @@ initSimple();
 
 // ============ FULL APP ============
 (function(){
+var ADV_KEY = 'tr-advanced'; // FIXED: define in this scope too
 if(TR_I18N && TR_I18N.apply) TR_I18N.apply();
 if(TR_RULES && TR_RULES.render) TR_RULES.render();
 if(TR_UI && TR_UI.bindTabs) TR_UI.bindTabs();
@@ -140,7 +143,9 @@ b = document.getElementById('btnRedo'); if(b) b.onclick = function(){
 var h = TR_STATE.redo(); if(h){ document.getElementById('input').value = h.inp; TR_STATE.rules = h.rules; TR_RULES.render(); TR_UI.process(); TR_UI.toast(TR_I18N._('redone')); }
 };
 b = document.getElementById('btnCopy'); if(b) b.onclick = function(){
+if(navigator.clipboard){
 navigator.clipboard.writeText(TR_STATE.currentOutput).then(function(){ TR_UI.toast(TR_I18N._('copied')); });
+} else { TR_UI.toast('Clipboard not available'); }
 };
 b = document.getElementById('btnDownload'); if(b) b.onclick = function(){
 var b2 = new Blob([TR_STATE.currentOutput], {type:'text/plain'});
@@ -158,7 +163,7 @@ el.style.opacity = '0';
 el.style.transform = 'translateY(6px)';
 });
 setTimeout(function(){
-localStorage.removeItem(ADV_KEY);
+localStorage.removeItem(ADV_KEY); // FIXED: now defined
 location.reload();
 }, 300);
 };
