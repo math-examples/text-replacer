@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.3">
+<meta name="version" content="v1.0.4">
+<meta name="cdn-owner" content="math-examples">
+<meta name="cdn-repo" content="text-replacer">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
 </head>
 <body>
 
-<!-- ═══════════ SIMPLE MODE (first-run) ═══════════ -->
+<!-- ═══════════ SIMPLE MODE ═══════════ -->
 <div id="simpleMode" class="simple-mode">
   <div class="simple-container">
     <h2><span id="t-title">Text</span> Replacer</h2>
@@ -42,8 +44,7 @@
   </div>
 </div>
 
-
-<!--  FULL UI  -->
+<!-- FULL UI -->
 <div class="header">
   <h1><span id="t-title2">Text</span> Replacer</h1>
   <div class="toolbar">
@@ -53,7 +54,7 @@
     <button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
     <button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
     <button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
-    <button id="btnBackSimple" class="btn-ghost-header" title="Switch back to the minimal single-rule view">&#8592; Simple</button>
+    <button id="btnBackSimple" class="btn-ghost-header">&#8592; Simple</button>
   </div>
 </div>
 
@@ -65,138 +66,84 @@
   <div class="tab" data-panel="batch"><span id="t-tab-batch">&#128230; Batch</span></div>
 </div>
 
-<!-- RULES -->
-<div class="panel active" id="panel-rules">
-  <div class="rules-panel">
-    <div class="rules-toolbar">
-      <input type="text" id="ruleSearch" placeholder="Search rules...">
-      <button id="addRule">+ <span id="t-add">Add</span></button>
-      <button id="clearRules"><span id="t-clear">Clear</span></button>
-      <button id="importRules"><span id="t-import">Import</span></button>
-      <button id="exportRules"><span id="t-export">Export</span></button>
-    </div>
-    <div class="rules-list" id="rulesList"></div>
+<div class="panel active" id="panel-rules"><div class="rules-panel">
+  <div class="rules-toolbar">
+    <input type="text" id="ruleSearch" placeholder="Search rules...">
+    <button id="addRule">+ <span id="t-add">Add</span></button>
+    <button id="clearRules"><span id="t-clear">Clear</span></button>
+    <button id="importRules"><span id="t-import">Import</span></button>
+    <button id="exportRules"><span id="t-export">Export</span></button>
   </div>
-</div>
+  <div class="rules-list" id="rulesList"></div>
+</div></div>
 
-<!-- EDITOR -->
-<div class="panel" id="panel-editor">
-  <div class="editor-pane">
-    <div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
-    <div class="editor-wrap">
-      <textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea>
-      <div class="highlight-layer" id="inputHL"></div>
-    </div>
-  </div>
-  <div class="editor-pane">
-    <div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
-    <div class="editor-wrap">
-      <textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea>
-      <div class="highlight-layer" id="outputHL"></div>
-    </div>
-  </div>
-</div>
+<div class="panel" id="panel-editor"><div class="editor-pane">
+  <div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
+  <div class="editor-wrap"><textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea><div class="highlight-layer" id="inputHL"></div></div>
+</div><div class="editor-pane">
+  <div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
+  <div class="editor-wrap"><textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea><div class="highlight-layer" id="outputHL"></div></div>
+</div></div>
 
-<!-- DIFF -->
-<div class="panel" id="panel-diff">
-  <div class="editor-pane">
-    <div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
-    <div class="diff-output" id="diffOutput"></div>
-  </div>
-</div>
+<div class="panel" id="panel-diff"><div class="editor-pane">
+  <div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
+  <div class="diff-output" id="diffOutput"></div>
+</div></div>
 
-<!-- SANDBOX -->
-<div class="panel" id="panel-sandbox">
-  <div class="sandbox">
-    <div class="sandbox-row">
-      <label><span id="t-sb-from">From:</span></label>
-      <input id="sbFrom" placeholder="literal or /regex/">
-      <label><input type="checkbox" id="sbRegex">Regex</label>
-      <label><input type="checkbox" id="sbCase">Aa</label>
-    </div>
-    <div class="sandbox-row">
-      <label><span id="t-sb-to">To:</span></label>
-      <input id="sbTo" placeholder="replacement">
-    </div>
-    <div class="sandbox-row">
-      <label><span id="t-sb-test">Test text:</span></label>
-      <button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button>
-      <button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button>
-    </div>
-    <div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
-  </div>
-</div>
+<div class="panel" id="panel-sandbox"><div class="sandbox">
+  <div class="sandbox-row"><label><span id="t-sb-from">From:</span></label><input id="sbFrom" placeholder="literal or /regex/"><label><input type="checkbox" id="sbRegex">Regex</label><label><input type="checkbox" id="sbCase">Aa</label></div>
+  <div class="sandbox-row"><label><span id="t-sb-to">To:</span></label><input id="sbTo" placeholder="replacement"></div>
+  <div class="sandbox-row"><label><span id="t-sb-test">Test text:</span></label><button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button><button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button></div>
+  <div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
+</div></div>
 
-<!-- BATCH -->
-<div class="panel" id="panel-batch">
-  <div class="batch">
-    <div class="sandbox-row">
-      <button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button>
-      <button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button>
-      <button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button>
-    </div>
-    <div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
-  </div>
-</div>
+<div class="panel" id="panel-batch"><div class="batch">
+  <div class="sandbox-row"><button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button><button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button><button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button></div>
+  <div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
+</div></div>
 
-<!-- PRESET MODAL -->
-<div class="modal-overlay" id="presetModal">
-  <div class="modal">
-    <div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
-    <div class="modal-body" id="presetList"></div>
-    <div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
-  </div>
-</div>
+<div class="modal-overlay" id="presetModal"><div class="modal">
+  <div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
+  <div class="modal-body" id="presetList"></div>
+  <div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
+</div></div>
 
 <input type="file" id="fileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous"></script>
-<script src="js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous"></script>
-<script src="js/processor.js" integrity="sha384-4hJnGrDyRI81X0A6K1ZaF4VzAhG3i/HhPuL7vA/7U1K8dS6ZENaMhM+zii3PQJdU" crossorigin="anonymous"></script>
-<script src="js/rules.js" integrity="sha384-eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT" crossorigin="anonymous"></script>
-<script src="js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous"></script>
-<script src="js/sandbox.js" integrity="sha384-lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3" crossorigin="anonymous"></script>
-<script src="js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous"></script>
-<script src="js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous"></script>
-<script src="js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous"></script>
-<script src="js/app.js" integrity="sha384-cQw3sZLyCSx5NmrIzuOWU2b3I4Us8+tnzOb7ahnl/5NQPSsYW6B+MqVjQgy0NlJI" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/processor.js" integrity="sha384-4hJnGrDyRI81X0A6K1ZaF4VzAhG3i/HhPuL7vA/7U1K8dS6ZENaMhM+zii3PQJdU" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/rules.js" integrity="sha384-eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/sandbox.js" integrity="sha384-lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.4/js/app.js" integrity="sha384-cQw3sZLyCSx5NmrIzuOWU2b3I4Us8+tnzOb7ahnl/5NQPSsYW6B+MqVjQgy0NlJI" crossorigin="anonymous"></script>
+
 <script>
+// ─── Simple version-based cache busting (replaces entire hash-check system) ───
 (function(){
-  var files = [
-    'css/app.css',
-    'js/i18n.js','js/state.js','js/processor.js','js/rules.js',
-    'js/editor.js','js/sandbox.js','js/batch.js','js/presets.js','js/ui.js','js/app.js'
-  ];
-  var version = document.querySelector('meta[name="version"]').content;
-  var checks = {
-    'css/app.css':'A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc','js/i18n.js':'9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO','js/state.js':'cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs','js/processor.js':'4hJnGrDyRI81X0A6K1ZaF4VzAhG3i/HhPuL7vA/7U1K8dS6ZENaMhM+zii3PQJdU',
-    'js/rules.js':'eP9LuS1oROIl16WY4J4s0qpLWXONWT9q5Cu73fDVNbAcXKMfCUE4KwR0Qh2I1AMT','js/editor.js':'g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr','js/sandbox.js':'lWEa+XZSWvBxEitHrooa1yiKQ++6QATMCtRGv4XSn5Wv2122v/vlMMziinsjEH/3','js/batch.js':'0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib',
-    'js/presets.js':'Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9','js/ui.js':'Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW','js/app.js':'cQw3sZLyCSx5NmrIzuOWU2b3I4Us8+tnzOb7ahnl/5NQPSsYW6B+MqVjQgy0NlJI'
-  };
-  function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return h.toString(36)}
-  function checkAll(){
-    var loaded=0;
-    files.forEach(function(f){
-      fetch(f+'?v='+version,{cache:'no-cache'}).then(function(r){return r.text()}).then(async function(t){
-        checks[f]=await hashStr(t);loaded++;
-        if(loaded===files.length){
-          var stored=JSON.parse(localStorage.getItem('tr-hashes')||'{}');
-          var changed=[];
-          Object.keys(checks).forEach(function(k){if(stored[k]&&stored[k]!==checks[k])changed.push(k)});
-          if(changed.length){
-            console.log('Updated files:',changed);
-            localStorage.setItem('tr-hashes',JSON.stringify(checks));
-            if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister()})});
-          } else if(!stored['js/app.js']){
-            localStorage.setItem('tr-hashes',JSON.stringify(checks));
-          }
-        }
+  var VERSION = document.querySelector('meta[name="version"]').content;
+  var stored = localStorage.getItem('tr-version');
+  if (stored && stored !== VERSION) {
+    // Version changed → clear old caches, unregister SW
+    console.log('App updated:', stored, '→', VERSION);
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.getRegistrations().then(function(rs){
+        rs.forEach(function(r){ r.unregister(); });
       });
-    });
+    }
+    // Clear any old app caches if you use Cache API
+    if (window.caches) {
+      caches.keys().then(function(names){
+        names.forEach(function(n){ caches.delete(n); });
+      });
+    }
   }
-  if(window.location.protocol!=='file:')checkAll();
+  localStorage.setItem('tr-version', VERSION);
 })();
 </script>
 </body>
