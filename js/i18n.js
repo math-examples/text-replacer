@@ -4,6 +4,9 @@ var TR_I18N = (function(){
 var rawLang = (navigator.language || navigator.userLanguage || navigator.browserLanguage || 'en').toLowerCase();
 var lang = rawLang.indexOf('zh') === 0 ? 'zh' : 'en';
 
+// Expose globally for other scripts
+window.TR_LANG = lang;
+
 var dict = {
 en: {
 title:'Text ✨', undo:'↩ Undo', redo:'↪ Redo', copy:'📋 Copy', dl:'💾 Save', load:'📂 Load', preset:'📦 Presets',

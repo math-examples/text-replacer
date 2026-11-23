@@ -2,8 +2,22 @@
 (function(){
 'use strict';
 var ADV_KEY = 'tr-advanced';
+var adv = localStorage.getItem(ADV_KEY) === '1';
 
-// Version display for full UI header
+// ─── Show/hide full app container ───
+// Try common selectors for the full app root
+var fullApp = document.getElementById('app')
+  || document.querySelector('.app-container')
+  || document.querySelector('main')
+  || document.querySelector('.container');
+if (fullApp) {
+  fullApp.style.display = adv ? '' : 'none';
+}
+
+// If not in advanced mode, don't init full UI at all
+if (!adv) return;
+
+// ─── Version display for full UI header ───
 var ver = document.querySelector('meta[name="version"]');
 if(ver){
   var vEl = document.createElement('span');
@@ -13,7 +27,7 @@ if(ver){
   if(h1) h1.appendChild(vEl);
 }
 
-// Wire up full UI only if elements exist
+// ─── Init full UI ───
 if(typeof TR_I18N !== 'undefined' && TR_I18N.apply) TR_I18N.apply();
 if(typeof TR_RULES !== 'undefined' && TR_RULES.render) TR_RULES.render();
 if(typeof TR_UI !== 'undefined' && TR_UI.bindTabs) TR_UI.bindTabs();

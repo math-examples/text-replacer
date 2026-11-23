@@ -6,17 +6,15 @@ Text Replacer — Simple Mode (Girly Edition 🌸)
 
 var ADV_KEY = 'tr-advanced';
 
-// ─── Language detection (bulletproof) ───
+// ─── Language helper (uses shared TR_LANG) ───
 function isZh() {
-  var l = (navigator.language || navigator.userLanguage || navigator.browserLanguage || 'en').toLowerCase();
-  return l.indexOf('zh') === 0;
+  return window.TR_LANG === 'zh' || (navigator.language || '').toLowerCase().indexOf('zh') === 0;
 }
 
-// ─── i18n helper ───
+// ─── i18n helper with retry ───
 function _t(k) {
-  // Prefer global TR_I18N if available
   if (typeof TR_I18N !== 'undefined' && TR_I18N._) return TR_I18N._(k);
-  // Fallback dict with correct language
+  // Fallback dict
   var zh = {
     find: '查找 ✨', replace: '替换为 💖', advanced: '进入高级模式 🚀',
     simpleTitle: '文本替换器', simpleInput: '粘贴或输入文本...', simpleOutput: '结果将显示在这里...',
@@ -68,14 +66,11 @@ function applyI18nToEl(el) {
 
 // ─── Apply i18n to all static elements ───
 function applyI18n() {
-  // Title
   var title = document.querySelector('.simple-container h2');
   if (title) title.innerHTML = '<span>' + _t('simpleTitle') + '</span>';
 
-  // Textareas & all rule inputs
   document.querySelectorAll('.simpleFrom, .simpleTo, #simpleInput, #simpleOutput').forEach(applyI18nToEl);
 
-  // Buttons by ID
   var map = {
     'simplePaste': 'simplePaste', 'simpleLoad': 'simpleLoad', 'addSimpleRule': 'simpleAdd',
     'viceVersaBtn': 'simpleViceVersa', 'simpleReplace': 'simpleReplace', 'simpleSwap': 'simpleSwap',
@@ -86,11 +81,22 @@ function applyI18n() {
     if (el) el.textContent = _t(map[id]);
   }
 
-  // Checkbox labels (rebuild to keep inputs)
   var regexLabel = document.querySelector('label[for="simpleRegex"]');
   if (regexLabel) regexLabel.innerHTML = '<input type="checkbox" id="simpleRegex"> ' + _t('regex');
   var caseLabel = document.querySelector('label[for="simpleCase"]');
   if (caseLabel) caseLabel.innerHTML = '<input type="checkbox" id="simpleCase"> ' + _t('caseInsensitive');
+}
+
+// ─── Wait for TR_I18N then apply ───
+function applyI18nWhenReady(retries) {
+  retries = retries || 0;
+  if (typeof TR_I18N !== 'undefined' && TR_I18N._) {
+    applyI18n();
+  } else if (retries < 20) {
+    setTimeout(function(){ applyI18nWhenReady(retries + 1); }, 50);
+  } else {
+    applyI18n(); // fallback
+  }
 }
 
 // ─── MutationObserver for dynamic rule rows ───
@@ -100,10 +106,8 @@ function observeDynamicI18n() {
   var observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(m) {
       m.addedNodes.forEach(function(node) {
-        if (node.nodeType === 1) { // element
-          // Translate the row's inputs
+        if (node.nodeType === 1) {
           node.querySelectorAll && node.querySelectorAll('.simpleFrom, .simpleTo').forEach(applyI18nToEl);
-          // Also translate the remove button if present
           var rm = node.querySelector && node.querySelector('.simple-remove-rule');
           if (rm) rm.title = isZh() ? '删除' : 'Remove';
         }
@@ -118,24 +122,25 @@ function init() {
   var simple = document.getElementById('simpleMode');
   if (!simple) return;
 
-  // Set version immediately
-  setVersion();
+  var adv = localStorage.getItem(ADV_KEY) === '1';
 
-  // If user previously chose advanced, hide simple mode entirely
-  if (localStorage.getItem(ADV_KEY) === '1') {
+  // If advanced mode, hide simple mode entirely
+  if (adv) {
     simple.style.display = 'none';
-    return; // Stop here — don't init simple UI
+    return;
   }
 
   // Show simple mode
+  simple.style.display = '';
   simple.classList.add('showing');
   setTimeout(function(){ simple.classList.remove('showing'); }, 400);
 
-  // Apply i18n (with retry in case TR_I18N loads late)
-  applyI18n();
+  // Set version immediately
+  setVersion();
+
+  // Apply i18n (wait for TR_I18N if needed)
+  applyI18nWhenReady();
   observeDynamicI18n();
-  // Retry once after a short delay to catch late-loading TR_I18N
-  setTimeout(applyI18n, 100);
 
   // SRI toggle
   var DISABLE_SRI = localStorage.getItem('tr_disable_sri') === '1' || new URLSearchParams(location.search).has('nohash');
@@ -148,7 +153,7 @@ function init() {
     };
   }
 
-  // Advanced button — ALWAYS visible, forced display
+  // Advanced button — ALWAYS visible
   var btnAdvanced = document.getElementById('simpleAdvanced');
   if (btnAdvanced) {
     btnAdvanced.style.display = 'inline-block';
@@ -231,7 +236,6 @@ function initButtons() {
   if (btnReplace) btnReplace.addEventListener('click', doReplace);
   if (inp) inp.addEventListener('input', doReplace);
 
-  // Paste
   var btnPaste = document.getElementById('simplePaste');
   if (btnPaste && inp) {
     btnPaste.addEventListener('click', function(){
@@ -241,7 +245,6 @@ function initButtons() {
     });
   }
 
-  // Load file
   var btnLoad = document.getElementById('simpleLoad');
   var fileInput = document.getElementById('simpleFileInput');
   if (btnLoad && fileInput && inp) {
@@ -254,11 +257,9 @@ function initButtons() {
     });
   }
 
-  // Swap
   var btnSwap = document.getElementById('simpleSwap');
   if (btnSwap) btnSwap.addEventListener('click', function(){ var tmp = inp.value; inp.value = out.value; out.value = tmp; });
 
-  // Copy
   var btnCopy = document.getElementById('simpleCopy');
   if (btnCopy) {
     btnCopy.addEventListener('click', function(){
@@ -271,7 +272,6 @@ function initButtons() {
     });
   }
 
-  // Download
   var btnDownload = document.getElementById('simpleDownload');
   if (btnDownload) {
     btnDownload.addEventListener('click', function(){
