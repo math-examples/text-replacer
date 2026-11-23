@@ -323,17 +323,33 @@ bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
   document.body.appendChild(rulesImportInput);
 
   rulesImportInput.onchange = function() {
-    var f = this.files[0]; if (!f) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        if (TR_RULES && TR_RULES.importRules) TR_RULES.importRules(e.target.result);
-        if (TR_UI && TR_UI.toast) TR_UI.toast('Rules imported');
-      } catch(err) { console.error('[TR] Import failed:', err); }
-    };
-    reader.readAsText(f);
-    this.value = '';
+  var f = this.files[0]; if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      if (TR_RULES && TR_RULES.importRules) {
+        TR_RULES.importRules(e.target.result);
+      }
+      // Force UI re-render via multiple strategies
+      setTimeout(function() {
+        if (typeof TR_UI !== 'undefined') {
+          if (typeof TR_UI.renderRules === 'function') TR_UI.renderRules();
+          else if (typeof TR_UI.updateRules === 'function') TR_UI.updateRules();
+          else if (typeof TR_UI.refresh === 'function') TR_UI.refresh();
+          else if (typeof TR_UI.render === 'function') TR_UI.render();
+        }
+        // Trigger custom event for any listeners
+        document.dispatchEvent(new CustomEvent('tr:rules-imported'));
+        if (TR_UI && TR_UI.toast) TR_UI.toast('Rules imported & rendered');
+      }, 50);
+    } catch(err) { 
+      console.error('[TR] Import failed:', err); 
+      if (TR_UI && TR_UI.toast) TR_UI.toast('Import failed');
+    }
   };
+  reader.readAsText(f);
+  this.value = '';
+};
 
   if (TR_RULES) {
     bind('importRules', function() { rulesImportInput.click(); });
@@ -347,6 +363,112 @@ bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
       if (TR_UI && TR_UI.toast) TR_UI.toast('Rules exported');
     });
   }
+})();
+
+// ─── STEP 7c: Import/Export render fix + Mode switching ───
+
+// 1) Fix: Re-render rules list after import
+(function fixImportRender() {
+  var rulesImportInput = document.getElementById('rulesImportInput') || document.querySelector('input[type="file"][accept=".json"]');
+  if (!rulesImportInput) return;
+  
+  // Override the change handler to include re-render
+  var originalOnChange = rulesImportInput.onchange;
+  rulesImportInput.addEventListener('change', function() {
+    // Give importRules time to process, then force UI update
+    setTimeout(function() {
+      // Try multiple possible render methods
+      if (typeof TR_UI !== 'undefined') {
+        if (typeof TR_UI.renderRules === 'function') TR_UI.renderRules();
+        else if (typeof TR_UI.updateRules === 'function') TR_UI.updateRules();
+        else if (typeof TR_UI.refresh === 'function') TR_UI.refresh();
+        else if (typeof TR_UI.render === 'function') TR_UI.render();
+      }
+      // Also dispatch a custom event for any listener
+      document.dispatchEvent(new CustomEvent('tr:rules-imported'));
+    }, 100);
+  });
+})();
+
+// 2) Fix: Arrow/Simple button mode switching
+(function fixModeSwitch() {
+  function goToSimpleMode(e) {
+    if (e) e.preventDefault();
+    var url = new URL(location.href);
+    url.searchParams.delete('advanced');
+    // Preserve hash
+    location.href = url.pathname + (url.search ? url.search : '') + location.hash;
+  }
+  
+  function goToAdvancedMode(e) {
+    if (e) e.preventDefault();
+    var url = new URL(location.href);
+    url.searchParams.set('advanced', '1');
+    location.href = url.pathname + url.search + location.hash;
+  }
+
+  // Bind ALL possible mode-switch buttons by text content, title, or data attribute
+  function bindModeButtons() {
+    // Buttons that should go to simple mode
+    var simpleSelectors = [
+      '[data-mode="simple"]',
+      '#backToSimple', '#simpleModeBtn', '#btnSimple', '.back-to-simple',
+      'button[title*="simple" i]', 'button[title*="Simple"]',
+      'button[aria-label*="simple" i]', 'button[aria-label*="Simple"]'
+    ];
+    
+    simpleSelectors.forEach(function(sel) {
+      try {
+        document.querySelectorAll(sel).forEach(function(btn) {
+          if (!btn._modeBound) {
+            btn.addEventListener('click', goToSimpleMode);
+            btn._modeBound = true;
+          }
+        });
+      } catch(e) {}
+    });
+
+    // Buttons that should go to advanced mode (including arrow buttons)
+    var advSelectors = [
+      '[data-mode="advanced"]',
+      '#goAdvanced', '#advancedModeBtn', '#btnAdvanced', '.go-to-advanced',
+      'button[title*="advanced" i]', 'button[title*="Advanced"]'
+    ];
+    
+    advSelectors.forEach(function(sel) {
+      try {
+        document.querySelectorAll(sel).forEach(function(btn) {
+          if (!btn._modeBound) {
+            btn.addEventListener('click', goToAdvancedMode);
+            btn._modeBound = true;
+          }
+        });
+      } catch(e) {}
+    });
+
+    // Special: any button whose text contains arrow + simple
+    document.querySelectorAll('button').forEach(function(btn) {
+      if (btn._modeBound) return;
+      var text = btn.textContent || btn.innerText || '';
+      if ((text.includes('←') || text.includes('⇐') || text.includes('<')) && /simple/i.test(text)) {
+        btn.addEventListener('click', goToSimpleMode);
+        btn._modeBound = true;
+      }
+      if ((text.includes('→') || text.includes('⇒') || text.includes('>')) && /advanced/i.test(text)) {
+        btn.addEventListener('click', goToAdvancedMode);
+        btn._modeBound = true;
+      }
+    });
+  }
+
+  // Run on DOM ready and after any dynamic updates
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindModeButtons);
+  } else {
+    bindModeButtons();
+  }
+  // Also re-bind after import renders
+  document.addEventListener('tr:rules-imported', bindModeButtons);
 })();
 
 // ─── STEP 8: Preset modal ───
