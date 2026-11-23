@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.10">
+<meta name="version" content="v1.0.11">
 <meta name="cdn-owner" content="math-examples">
 <meta name="cdn-repo" content="text-replacer">
 <!-- No cookies: crossorigin=anonymous on all assets; referrer policy -->
@@ -86,7 +86,7 @@ body{font-family:system-ui,sans-serif;background:#111;color:#eee;margin:0}
   var CDNS = ['https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net', 'https://gcore.jsdelivr.net'];
   var OWNER = document.querySelector('meta[name="cdn-owner"]').content;
   var REPO = document.querySelector('meta[name="cdn-repo"]').content;
-  var VERSION = v ? v.content : 'v1.0.9';
+  var VERSION = document.querySelector('meta[name="version"]').content;
 
   var ASSETS = [
     {type:'css', path:'css/app.css'},
