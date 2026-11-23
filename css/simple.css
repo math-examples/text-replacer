@@ -1,39 +1,178 @@
+/* ===== css/simple.css ===== */
 /* ═══════════════════════════════════════════
-   Text Replacer — Simple Mode Styles
+Text Replacer — Simple Mode (Girly Edition 🌸)
 ═══════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; overflow-x: hidden; font-family: system-ui, -apple-system, sans-serif; background: #111; color: #eee; }
 
-.simple-mode { display: flex; justify-content: center; padding: 20px; }
-.simple-container { max-width: 900px; width: 100%; }
-.simple-container h2 { margin: 0 0 4px 0; font-size: 20px; }
-.simple-container p { margin: 0 0 12px 0; }
+body { 
+  margin: 0; overflow-x: hidden; 
+  font-family: 'Quicksand', 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+  background: #fdf2f8; 
+  color: #4a3040; 
+}
 
-/* Multi-rule rows */
-.simple-rules { margin-bottom: 8px; }
-.simple-rule-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
-.simple-rule-row input { flex: 1; min-width: 100px; padding: 6px 8px; background: #1e1e1e; color: #eee; border: 1px solid #444; border-radius: 3px; }
-.simple-rule-row .simple-arrow { color: #888; flex-shrink: 0; font-size: 14px; }
-.simple-rule-row .simple-remove-rule { background: #c0392b; color: #fff; border: none; padding: 4px 8px; cursor: pointer; font-size: 11px; border-radius: 3px; }
-.simple-rule-actions { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
-.simple-rule-actions button { background: #333; color: #ccc; border: 1px solid #555; padding: 4px 10px; cursor: pointer; font-size: 11px; border-radius: 3px; }
-.simple-rule-actions button:hover { background: #444; }
-.simple-rule-actions label { font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.simple-mode { 
+  display: flex; justify-content: center; padding: 24px; min-height: 100vh; 
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #f3e8ff 50%, #ede9fe 75%, #fdf2f8 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-/* Textareas */
-.simple-panes { display: flex; gap: 8px; flex-wrap: wrap; }
-.simple-panes textarea { flex: 1 1 48%; min-width: 0; max-width: 100%; word-break: break-all; resize: vertical; height: 180px; background: #1e1e1e; color: #eee; border: 1px solid #444; padding: 8px; border-radius: 3px; font-family: inherit; }
-.simple-actions { margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.btn-primary { background: #2980b9; color: #fff; border: none; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 12px; }
-.btn-secondary { background: #444; color: #eee; border: none; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 12px; }
-.btn-ghost { background: transparent; color: #888; border: 1px solid #555; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 12px; }
-.btn-ghost:hover { color: #ccc; border-color: #777; }
+.simple-container { max-width: 960px; width: 100%; }
 
+/* ─── Heading ─── */
+.simple-container h2 { 
+  margin: 0 0 4px 0; font-size: 26px; color: #be185d; 
+  font-weight: 800; letter-spacing: -0.02em;
+  text-shadow: 0 2px 4px rgba(190,24,93,0.1);
+}
+.simple-container h2 span { 
+  background: linear-gradient(135deg, #ec4899, #a855f7, #6366f1);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.simple-container p { margin: 0 0 14px 0; color: #9d6b8f; font-size: 13px; font-weight: 500; }
+
+/* ─── Multi-rule rows ─── */
+.simple-rules { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.simple-rule-row {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(244,114,182,0.25);
+  border-radius: 14px; padding: 10px 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(244,114,182,0.08);
+}
+.simple-rule-row:hover { 
+  border-color: rgba(244,114,182,0.5);
+  box-shadow: 0 6px 20px rgba(244,114,182,0.15);
+  transform: translateY(-1px);
+}
+.simple-rule-row input {
+  flex: 1; min-width: 120px; padding: 9px 14px; 
+  background: rgba(255,255,255,0.8); color: #4a3040;
+  border: 1.5px solid rgba(244,114,182,0.2); border-radius: 10px; 
+  font-size: 13px; font-family: 'SF Mono', 'Cascadia Code', monospace;
+  transition: all 0.25s ease;
+}
+.simple-rule-row input::placeholder { color: #c4a3b8; }
+.simple-rule-row input:focus { 
+  outline: none; border-color: #ec4899; 
+  box-shadow: 0 0 0 3px rgba(236,72,153,0.12);
+  background: #fff;
+}
+.simple-rule-row .simple-arrow { 
+  color: #ec4899; flex-shrink: 0; font-size: 16px; font-weight: 700; 
+}
+.simple-rule-row .simple-remove-rule {
+  background: rgba(251,113,133,0.1); color: #f43f5e; border: 1.5px solid rgba(251,113,133,0.25);
+  padding: 6px 12px; cursor: pointer; font-size: 11px; border-radius: 10px; 
+  transition: all 0.25s ease; font-weight: 600;
+}
+.simple-rule-row .simple-remove-rule:hover { 
+  background: rgba(251,113,133,0.2); border-color: #f43f5e; transform: scale(1.05);
+}
+
+/* ─── Rule actions ─── */
+.simple-rule-actions { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.simple-rule-actions button {
+  background: rgba(255,255,255,0.6); color: #7c3a6b; border: 1.5px solid rgba(244,114,182,0.25); 
+  padding: 7px 14px; cursor: pointer; font-size: 11px; border-radius: 10px; 
+  transition: all 0.25s ease; font-weight: 600;
+}
+.simple-rule-actions button:hover { 
+  background: rgba(255,255,255,0.9); border-color: #ec4899; 
+  box-shadow: 0 4px 12px rgba(236,72,153,0.15); transform: translateY(-1px);
+}
+.simple-rule-actions label { 
+  font-size: 11px; display: flex; align-items: center; gap: 5px; 
+  cursor: pointer; color: #9d6b8f; font-weight: 600;
+}
+.simple-rule-actions label input { accent-color: #ec4899; width: 15px; height: 15px; }
+
+/* ─── Textareas ─── */
+.simple-panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.simple-panes textarea {
+  min-width: 0; max-width: 100%; word-break: break-all; resize: vertical; min-height: 240px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  color: #4a3040; border: 1.5px solid rgba(244,114,182,0.25); 
+  padding: 14px; border-radius: 14px;
+  font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 13px; line-height: 1.6;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(244,114,182,0.08);
+}
+.simple-panes textarea::placeholder { color: #c4a3b8; }
+.simple-panes textarea:focus { 
+  outline: none; border-color: #ec4899; 
+  box-shadow: 0 0 0 4px rgba(236,72,153,0.12), 0 6px 20px rgba(236,72,153,0.1);
+  background: rgba(255,255,255,0.95);
+}
+
+/* ─── Actions ─── */
+.simple-actions { margin-top: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* ─── Buttons ─── */
+.btn-primary {
+  background: linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #a855f7 100%);
+  color: #fff; border: none; padding: 10px 22px; cursor: pointer; border-radius: 12px; 
+  font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(236,72,153,0.35);
+}
+.btn-primary:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 24px rgba(236,72,153,0.45);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: rgba(255,255,255,0.6); color: #7c3a6b; border: 1.5px solid rgba(244,114,182,0.3); 
+  padding: 9px 20px; cursor: pointer; border-radius: 12px; font-size: 12px; font-weight: 600; 
+  transition: all 0.25s ease; backdrop-filter: blur(5px);
+}
+.btn-secondary:hover { 
+  background: rgba(255,255,255,0.9); border-color: #ec4899; 
+  box-shadow: 0 4px 14px rgba(236,72,153,0.15); transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent; color: #9d6b8f; border: 1.5px dashed rgba(244,114,182,0.4); 
+  padding: 9px 20px; cursor: pointer; border-radius: 12px; font-size: 12px; 
+  transition: all 0.25s ease; font-weight: 500;
+}
+.btn-ghost:hover { 
+  color: #be185d; border-color: #ec4899; 
+  background: rgba(255,255,255,0.4);
+  box-shadow: 0 4px 14px rgba(236,72,153,0.1);
+}
+
+/* ─── Decorative hearts / sparkles ─── */
+.simple-container::before {
+  content: '✨';
+  position: absolute;
+  top: 12px; right: 20px;
+  font-size: 20px;
+  animation: twinkle 2s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ─── Responsive ─── */
 @media (max-width: 600px) {
-  .simple-panes { flex-direction: column; }
-  .simple-panes textarea { flex: 1 1 100%; }
+  .simple-panes { grid-template-columns: 1fr; }
   .simple-rule-row { flex-direction: column; align-items: stretch; }
   .simple-rule-row .simple-arrow { text-align: center; }
+  .simple-container h2 { font-size: 22px; }
 }
 
 /* Full UI hidden by default */
