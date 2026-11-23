@@ -60,6 +60,37 @@ function showCuteToast(msg) {
   setTimeout(function () { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) scale(0.9)'; setTimeout(function () { document.body.removeChild(t); }, 300); }, 2000);
 }
 
+// ─── Inject critical CSS for Advanced button visibility ───
+function injectButtonFix() {
+  var style = document.createElement('style');
+  style.textContent = `
+    #simpleAdvanced {
+      position: fixed !important;
+      top: env(safe-area-inset-top, 8px) !important;
+      right: env(safe-area-inset-right, 8px) !important;
+      z-index: 10000 !important;
+      display: inline-block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      background: linear-gradient(135deg, #ec4899, #a855f7) !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 20px !important;
+      padding: 8px 16px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(236,72,153,0.4) !important;
+    }
+    /* Ensure simple mode container doesn't overflow-hidden the button */
+    #simpleMode, .simple-container {
+      overflow: visible !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // ─── i18n element ───
 function applyI18nToEl(el) {
   if (!el) return;
@@ -114,6 +145,8 @@ function observeDynamicI18n() {
 
 // ─── Init ───
 function init() {
+  injectButtonFix();
+
   var simple = document.getElementById('simpleMode');
   if (!simple) return;
 
@@ -132,7 +165,6 @@ function init() {
   // Advanced button → navigate with param
   var btnAdvanced = document.getElementById('simpleAdvanced');
   if (btnAdvanced) {
-    btnAdvanced.style.display = 'inline-block';
     btnAdvanced.addEventListener('click', function () {
       location.href = location.pathname + '?advanced=1' + location.hash;
     });

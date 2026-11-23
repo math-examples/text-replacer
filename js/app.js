@@ -9,9 +9,30 @@ var isAdvanced = params.get('advanced') === '1';
 // ─── If not advanced mode, do absolutely nothing ───
 if (!isAdvanced) return;
 
-// ─── Hide simple mode if present ───
+// ─── Hide simple mode ───
 var simple = document.getElementById('simpleMode');
 if (simple) simple.style.display = 'none';
+
+// ─── Forcefully show ALL advanced UI elements ───
+// Unhide common advanced containers
+var advSelectors = [
+  '#app', '.app-container', '.app', 'main', '.container', '#main',
+  '.main-content', '.full-app', '#fullApp', '.advanced-app',
+  '.tabs-container', '.editor-container', '.tab-content',
+  '.rules-panel', '.editor-panel', '.diff-panel', '.sandbox-panel', '.batch-panel',
+  '.header', '.footer', '.toolbar', '.input-section', '.output-section'
+];
+advSelectors.forEach(function(sel) {
+  try {
+    var els = document.querySelectorAll(sel);
+    els.forEach(function(el) { el.style.display = ''; });
+  } catch(e) {}
+});
+
+// Also unhide any element with class containing 'tab' or 'panel' or 'rule'
+document.querySelectorAll('[class*="tab"], [class*="panel"], [class*="rule"], [class*="editor"], [class*="input"], [class*="output"]').forEach(function(el) {
+  el.style.display = '';
+});
 
 // ─── Version ───
 function setVersion() {
@@ -24,18 +45,25 @@ function setVersion() {
   if (h1) h1.appendChild(vEl);
 }
 
-// ─── Safe caller ───
-function safe(fn) {
-  try { fn(); } catch (e) { console.warn('[Text Replacer]', e); }
+// ─── Safe caller with logging ───
+function safe(fn, label) {
+  try { fn(); }
+  catch (e) { console.error('[Text Replacer][' + (label||'unknown') + ']', e); }
 }
 
 // ─── Init ───
 function init() {
   setVersion();
 
-  safe(function () { if (TR_I18N && TR_I18N.apply) TR_I18N.apply(); });
-  safe(function () { if (TR_RULES && TR_RULES.render) TR_RULES.render(); });
-  safe(function () { if (TR_UI && TR_UI.bindTabs) TR_UI.bindTabs(); });
+  console.log('[Text Replacer] Advanced mode init starting...');
+  console.log('TR_I18N:', typeof TR_I18N);
+  console.log('TR_RULES:', typeof TR_RULES);
+  console.log('TR_UI:', typeof TR_UI);
+  console.log('TR_STATE:', typeof TR_STATE);
+
+  safe(function () { if (TR_I18N && TR_I18N.apply) TR_I18N.apply(); }, 'i18n');
+  safe(function () { if (TR_RULES && TR_RULES.render) TR_RULES.render(); }, 'rules');
+  safe(function () { if (TR_UI && TR_UI.bindTabs) TR_UI.bindTabs(); }, 'tabs');
 
   var inputEl = document.getElementById('input');
   if (inputEl && TR_STATE) {
@@ -43,13 +71,13 @@ function init() {
       safe(function () {
         TR_STATE.pushHist(e.target.value, TR_STATE.currentOutput);
         if (TR_UI) TR_UI.process();
-      });
+      }, 'input');
     });
   }
 
   function bind(id, fn) {
     var b = document.getElementById(id);
-    if (b) b.addEventListener('click', function () { safe(fn); });
+    if (b) b.addEventListener('click', function () { safe(fn, id); });
   }
 
   if (TR_UI) {
@@ -88,7 +116,9 @@ function init() {
     bind('batchClear', function () { TR_BATCH.clear(); });
   }
 
-  safe(function () { if (TR_UI && TR_UI.process) TR_UI.process(); });
+  safe(function () { if (TR_UI && TR_UI.process) TR_UI.process(); }, 'process');
+
+  console.log('[Text Replacer] Advanced mode init complete');
 }
 
 // ─── Boot ───
