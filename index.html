@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.1">
+<meta name="version" content="v1.0.2">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="css/app.css" integrity="sha384-oGKb0F1EzYvnMHaosS2Tv307KQ0bW2+Ap3VsCRji+Fkumtj3lIpeuwmlIcWKoQNg" crossorigin="anonymous">
+<link rel="stylesheet" href="css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
 </head>
 <body>
 
-<!--  SIMPLE MODE (first-run)  -->
+<!-- ═══════════ SIMPLE MODE (first-run) ═══════════ -->
 <div id="simpleMode" class="simple-mode">
   <div class="simple-container">
     <h2><span id="t-title">Text</span> Replacer</h2>
     <p class="simple-hint" id="t-simple-hint">Paste text, set find &amp; replace, and go.</p>
     <div class="simple-rule">
       <input id="simpleFrom" placeholder="Find (literal or /regex/)">
-      <span class="simple-arrow"></span>
+      <span class="simple-arrow">→</span>
       <input id="simpleTo" placeholder="Replace with">
       <label class="simple-toggle"><input type="checkbox" id="simpleRegex">Regex</label>
       <label class="simple-toggle"><input type="checkbox" id="simpleCase">Aa</label>
@@ -30,10 +30,18 @@
       <button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
       <button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
       <span class="simple-spacer"></span>
-      <button id="simpleAdvanced" class="btn-ghost" title="Show all features">&#9881; Advanced &#9662;</button>
+      <button id="simpleAdvanced" class="btn-ghost" title="Unlock multiple rules, diff view, sandbox, batch processing, presets, undo/redo, and more">
+        &#9881; Advanced <span class="advanced-arrow">&#9662;</span>
+      </button>
+    </div>
+    <div class="simple-feature-hint" id="advancedFeatureHint">
+      <span class="feature-hint-text">
+        &#128161; <strong>Advanced</strong> unlocks: multiple rules, regex sandbox, line-by-line diff, batch file processing, presets, undo/redo, and more. You can switch back anytime.
+      </span>
     </div>
   </div>
 </div>
+
 
 <!--  FULL UI  -->
 <div class="header">
@@ -45,7 +53,7 @@
     <button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
     <button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
     <button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
-    <button id="btnBackSimple" class="btn-ghost-header" title="Switch to simple mode">&#8592; Simple</button>
+    <button id="btnBackSimple" class="btn-ghost-header" title="Switch back to the minimal single-rule view">&#8592; Simple</button>
   </div>
 </div>
 
@@ -163,9 +171,9 @@
   ];
   var version = document.querySelector('meta[name="version"]').content;
   var checks = {
-    'css/app.css':'GKb0F1EzYvnMHaos','js/i18n.js':'DTzVBmf9tJRcbbPI','js/state.js':'jZzFyJtBySUz1Si+','js/processor.js':'hJnGrDyRI81X0A6K',
+    'css/app.css':'4ejZ3LciDivNNeQe','js/i18n.js':'DTzVBmf9tJRcbbPI','js/state.js':'jZzFyJtBySUz1Si+','js/processor.js':'hJnGrDyRI81X0A6K',
     'js/rules.js':'P9LuS1oROIl16WY4','js/editor.js':'6JIMbXNi8MbPw+cU','js/sandbox.js':'WEa+XZSWvBxEitHr','js/batch.js':'K+7Pmzz6a1rnxV2+',
-    'js/presets.js':'l0hcKHX9hVI3dPta','js/ui.js':'b/AF0LZU8Rfes0mQ','js/app.js':'HiVPQ2loqfJUSnn4'
+    'js/presets.js':'l0hcKHX9hVI3dPta','js/ui.js':'b/AF0LZU8Rfes0mQ','js/app.js':'Qw3sZLyCSx5NmrIz'
   };
   function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return h.toString(36)}
   function checkAll(){

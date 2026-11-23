@@ -10,12 +10,61 @@
 
     if(isAdvanced){
       simple.style.display = 'none';
+      // Animate full UI in
+      document.querySelectorAll('.header,.tabs,.panel').forEach(function(el){
+        el.classList.add('full-ui');
+        requestAnimationFrame(function(){ el.classList.add('revealed'); });
+      });
       return;
     }
 
-    // First time: show simple mode, lock body scroll
-    simple.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    // Entrance animation
+    simple.classList.add('showing');
+    setTimeout(function(){ simple.classList.remove('showing'); }, 400);
+
+    // Feature hint toggle on hover/click of Advanced button
+    var advBtn = document.getElementById('simpleAdvanced');
+    var hint = document.getElementById('advancedFeatureHint');
+    if(advBtn && hint){
+      advBtn.addEventListener('mouseenter', function(){ hint.classList.add('visible'); });
+      advBtn.addEventListener('mouseleave', function(){ hint.classList.remove('visible'); });
+      advBtn.addEventListener('focus', function(){ hint.classList.add('visible'); });
+      advBtn.addEventListener('blur', function(){ hint.classList.remove('visible'); });
+      advBtn.addEventListener('click', function(){
+        hint.classList.remove('visible');
+        enterAdvanced(simple);
+      });
+      return; // don't double-bind onclick below
+    }
+
+    function enterAdvanced(sm){
+      sm.classList.add('hiding');
+      setTimeout(function(){
+        localStorage.setItem(ADV_KEY, '1');
+        sm.style.display = 'none';
+        document.body.style.overflow = '';
+        // Sync simple → full
+        var fullInput = document.getElementById('input');
+        if(fullInput){
+          fullInput.value = document.getElementById('simpleInput').value;
+          TR_STATE.setCurrentOutput(document.getElementById('simpleOutput').value);
+          var from = document.getElementById('simpleFrom');
+          var to = document.getElementById('simpleTo');
+          var regex = document.getElementById('simpleRegex');
+          var kase = document.getElementById('simpleCase');
+          if(from && from.value){
+            TR_STATE.rules[0] = {id:1, from:from.value, to:to.value, regex:regex.checked, case:kase.checked, enabled:true};
+            if(TR_RULES && TR_RULES.render) TR_RULES.render();
+          }
+          if(TR_UI && TR_UI.process) TR_UI.process();
+        }
+        // Reveal full UI
+        document.querySelectorAll('.header,.tabs,.panel').forEach(function(el){
+          el.classList.add('full-ui');
+          requestAnimationFrame(function(){ el.classList.add('revealed'); });
+        });
+      }, 350);
+    }
 
     var from = document.getElementById('simpleFrom');
     var to = document.getElementById('simpleTo');
@@ -28,7 +77,6 @@
       var f = from.value, t = to.value;
       var text = inp.value;
       if(!text){ out.value = ''; return; }
-
       if(regex.checked){
         var m = f.match(/^\/(.+)\/([gimsuy]*)$/);
         if(m){ try{ var re = new RegExp(m[1], m[2]); out.value = text.replace(re, TR_PROCESSOR.unesc(t)); }catch(e){ out.value = text; } }
@@ -60,23 +108,6 @@
       var b = new Blob([out.value], {type:'text/plain'});
       var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'replaced.txt'; a.click();
     };
-
-    document.getElementById('simpleAdvanced').onclick = function(){
-      localStorage.setItem(ADV_KEY, '1');
-      simple.style.display = 'none';
-      document.body.style.overflow = '';
-      // Sync simple → full
-      var fullInput = document.getElementById('input');
-      if(fullInput){
-        fullInput.value = inp.value;
-        TR_STATE.setCurrentOutput(out.value);
-        if(from.value){
-          TR_STATE.rules[0] = {id:1, from:from.value, to:to.value, regex:regex.checked, case:kase.checked, enabled:true};
-          if(TR_RULES && TR_RULES.render) TR_RULES.render();
-        }
-        if(TR_UI && TR_UI.process) TR_UI.process();
-      }
-    };
   }
 
   if(document.readyState === 'loading'){
@@ -88,16 +119,10 @@
 
 // ============ FULL APP ============
 (function(){
-  // i18n
   if(TR_I18N && TR_I18N.apply) TR_I18N.apply();
-
-  // Render rules
   if(TR_RULES && TR_RULES.render) TR_RULES.render();
-
-  // Tabs
   if(TR_UI && TR_UI.bindTabs) TR_UI.bindTabs();
 
-  // Input
   var inputEl = document.getElementById('input');
   if(inputEl){
     inputEl.addEventListener('input', function(e){
@@ -105,11 +130,8 @@
       TR_UI.process();
     });
   }
-
-  // Editor scroll sync
   if(TR_EDITOR){ TR_EDITOR.syncScroll(document.getElementById('input')); TR_EDITOR.syncScroll(document.getElementById('output')); }
 
-  // Toolbar
   var b;
   b = document.getElementById('btnUndo'); if(b) b.onclick = function(){
     var h = TR_STATE.undo(); if(h){ document.getElementById('input').value = h.inp; TR_STATE.rules = h.rules; TR_RULES.render(); TR_UI.process(); TR_UI.toast(TR_I18N._('undone')); }
@@ -130,13 +152,21 @@
     f.text().then(function(t){ document.getElementById('input').value = t; TR_STATE.pushHist(t,''); TR_UI.process(); TR_UI.toast(TR_I18N._('loaded')); });
   };
 
-  // Back to Simple
+  // Back to Simple — animated
   b = document.getElementById('btnBackSimple'); if(b) b.onclick = function(){
-    localStorage.removeItem('tr-advanced');
-    location.reload();
+    var sm = document.getElementById('simpleMode');
+    // Fade full UI out first
+    document.querySelectorAll('.header,.tabs,.panel').forEach(function(el){
+      el.style.transition = 'opacity .3s, transform .3s';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(6px)';
+    });
+    setTimeout(function(){
+      localStorage.removeItem(ADV_KEY);
+      location.reload();
+    }, 300);
   };
 
-  // Rules toolbar
   b = document.getElementById('addRule'); if(b) b.onclick = TR_RULES.addRule;
   b = document.getElementById('clearRules'); if(b) b.onclick = TR_RULES.clearRules;
   b = document.getElementById('ruleSearch'); if(b) b.oninput = TR_RULES.render;
@@ -150,17 +180,14 @@
     var a = document.createElement('a'); a.href = URL.createObjectURL(b2); a.download = 'rules.json'; a.click(); TR_UI.toast(TR_I18N._('saved'));
   };
 
-  // Sandbox
   b = document.getElementById('sbRun'); if(b) b.onclick = TR_SANDBOX.run;
   b = document.getElementById('sbClear'); if(b) b.onclick = TR_SANDBOX.clear;
 
-  // Batch
   b = document.getElementById('batchAdd'); if(b) b.onclick = function(){ document.getElementById('batchFileInput').click(); };
   b = document.getElementById('batchFileInput'); if(b) b.onchange = function(e){ TR_BATCH.addFiles(e.target.files); };
   b = document.getElementById('batchRun'); if(b) b.onclick = TR_BATCH.run;
   b = document.getElementById('batchClear'); if(b) b.onclick = TR_BATCH.clear;
 
-  // Presets
   b = document.getElementById('btnPreset'); if(b) b.onclick = function(){
     var list = document.getElementById('presetList'); if(!list) return; list.innerHTML = '';
     var all = TR_PRESETS.all();
@@ -179,12 +206,10 @@
     TR_PRESETS.save(n); TR_UI.toast(TR_I18N._('saved'));
   };
 
-  // Keyboard
   document.addEventListener('keydown', function(e){
     if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){ e.preventDefault(); var b=document.getElementById('btnUndo'); if(b)b.click(); }
     if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){ e.preventDefault(); var b=document.getElementById('btnRedo'); if(b)b.click(); }
   });
 
-  // Initial process
   if(TR_UI && TR_UI.process) TR_UI.process();
 })();
