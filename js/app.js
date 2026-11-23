@@ -313,93 +313,82 @@ if (batchFileInput) {
 }
 bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
 
-// ─── STEP 7b: Rules Import / Export ───
-(function(){
-  // Hidden file input for importing rules
-  var rulesImportInput = document.createElement('input');
-  rulesImportInput.type = 'file';
-  rulesImportInput.accept = '.json';
-  rulesImportInput.style.display = 'none';
-  document.body.appendChild(rulesImportInput);
+// ═══════════════════════════════════════════════════════
+// STEP 7b+7c: Unified Event Delegation
+// Handles: Import / Export / Mode Switching (arrow ↔ simple)
+// ═══════════════════════════════════════════════════════
+(function() {
+  'use strict';
 
-  rulesImportInput.onchange = function() {
-  var f = this.files[0]; if (!f) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      if (TR_RULES && TR_RULES.importRules) {
-        TR_RULES.importRules(e.target.result);
-      }
-      // Force UI re-render via multiple strategies
-      setTimeout(function() {
-        if (typeof TR_UI !== 'undefined') {
-          if (typeof TR_UI.renderRules === 'function') TR_UI.renderRules();
-          else if (typeof TR_UI.updateRules === 'function') TR_UI.updateRules();
-          else if (typeof TR_UI.refresh === 'function') TR_UI.refresh();
-          else if (typeof TR_UI.render === 'function') TR_UI.render();
+  // ── Persistent hidden file input for import ──
+  var importInput = document.getElementById('tr-import-rules-input');
+  if (!importInput) {
+    importInput = document.createElement('input');
+    importInput.id = 'tr-import-rules-input';
+    importInput.type = 'file';
+    importInput.accept = '.json,application/json';
+    importInput.style.display = 'none';
+    document.body.appendChild(importInput);
+  }
+
+  // ── Handle file import ──
+  importInput.addEventListener('change', function() {
+    var f = this.files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var data = typeof e.target.result === 'string' ? JSON.parse(e.target.result) : e.target.result;
+        if (typeof TR_RULES !== 'undefined') {
+          if (typeof TR_RULES.importRules === 'function') TR_RULES.importRules(data);
+          else if (typeof TR_RULES.loadRules === 'function') TR_RULES.loadRules(data);
+          else if (typeof TR_RULES.setRules === 'function') TR_RULES.setRules(data.rules || data);
         }
-        // Trigger custom event for any listeners
-        document.dispatchEvent(new CustomEvent('tr:rules-imported'));
-        if (TR_UI && TR_UI.toast) TR_UI.toast('Rules imported & rendered');
-      }, 50);
-    } catch(err) { 
-      console.error('[TR] Import failed:', err); 
-      if (TR_UI && TR_UI.toast) TR_UI.toast('Import failed');
-    }
-  };
-  reader.readAsText(f);
-  this.value = '';
-};
+        setTimeout(function() {
+          if (typeof TR_UI !== 'undefined') {
+            ['renderRules','updateRules','refreshRules','drawRules','render','refresh']
+              .forEach(function(m) { if (typeof TR_UI[m] === 'function') TR_UI[m](); });
+          }
+          document.dispatchEvent(new CustomEvent('tr:rules-imported'));
+          if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('✅ Rules imported');
+        }, 80);
+      } catch(err) {
+        console.error('[TR] Import failed:', err);
+        if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('❌ Import failed');
+      }
+    };
+    reader.readAsText(f);
+    this.value = '';
+  });
 
-  if (TR_RULES) {
-    bind('importRules', function() { rulesImportInput.click(); });
-    bind('exportRules', function() {
-      var data = TR_RULES.exportRules ? TR_RULES.exportRules() : JSON.stringify(TR_STATE.rules, null, 2);
-      var blob = new Blob([data], { type: 'application/json' });
+  // ── Export function ──
+  function doExport() {
+    try {
+      var data = {};
+      if (typeof TR_RULES !== 'undefined') {
+        if (typeof TR_RULES.exportRules === 'function') data = TR_RULES.exportRules();
+        else if (typeof TR_RULES.getRules === 'function') data = { rules: TR_RULES.getRules() };
+        else if (typeof TR_RULES.saveRules === 'function') data = TR_RULES.saveRules();
+      }
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'rules.json';
-      a.click();
-      if (TR_UI && TR_UI.toast) TR_UI.toast('Rules exported');
-    });
+      a.download = 'rules-' + new Date().toISOString().slice(0,10) + '.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('📤 Rules exported');
+    } catch(err) {
+      console.error('[TR] Export failed:', err);
+      if (typeof TR_UI !== 'undefined' && TR_UI.toast) TR_UI.toast('❌ Export failed');
+    }
   }
-})();
 
-// ─── STEP 7c: Import/Export render fix + Mode switching ───
-
-// 1) Fix: Re-render rules list after import
-(function fixImportRender() {
-  var rulesImportInput = document.getElementById('rulesImportInput') || document.querySelector('input[type="file"][accept=".json"]');
-  if (!rulesImportInput) return;
-  
-  // Override the change handler to include re-render
-  var originalOnChange = rulesImportInput.onchange;
-  rulesImportInput.addEventListener('change', function() {
-    // Give importRules time to process, then force UI update
-    setTimeout(function() {
-      // Try multiple possible render methods
-      if (typeof TR_UI !== 'undefined') {
-        if (typeof TR_UI.renderRules === 'function') TR_UI.renderRules();
-        else if (typeof TR_UI.updateRules === 'function') TR_UI.updateRules();
-        else if (typeof TR_UI.refresh === 'function') TR_UI.refresh();
-        else if (typeof TR_UI.render === 'function') TR_UI.render();
-      }
-      // Also dispatch a custom event for any listener
-      document.dispatchEvent(new CustomEvent('tr:rules-imported'));
-    }, 100);
-  });
-})();
-
-// 2) Fix: Arrow/Simple button mode switching
-(function fixModeSwitch() {
+  // ── Mode switch functions ──
   function goToSimpleMode(e) {
     if (e) e.preventDefault();
     var url = new URL(location.href);
     url.searchParams.delete('advanced');
-    // Preserve hash
     location.href = url.pathname + (url.search ? url.search : '') + location.hash;
   }
-  
   function goToAdvancedMode(e) {
     if (e) e.preventDefault();
     var url = new URL(location.href);
@@ -407,68 +396,53 @@ bind('batchAdd', function() { if (batchFileInput) batchFileInput.click(); });
     location.href = url.pathname + url.search + location.hash;
   }
 
-  // Bind ALL possible mode-switch buttons by text content, title, or data attribute
-  function bindModeButtons() {
-    // Buttons that should go to simple mode
-    var simpleSelectors = [
-      '[data-mode="simple"]',
-      '#backToSimple', '#simpleModeBtn', '#btnSimple', '.back-to-simple',
-      'button[title*="simple" i]', 'button[title*="Simple"]',
-      'button[aria-label*="simple" i]', 'button[aria-label*="Simple"]'
-    ];
-    
-    simpleSelectors.forEach(function(sel) {
-      try {
-        document.querySelectorAll(sel).forEach(function(btn) {
-          if (!btn._modeBound) {
-            btn.addEventListener('click', goToSimpleMode);
-            btn._modeBound = true;
-          }
-        });
-      } catch(e) {}
-    });
+  // ── Unified Event Delegation (capture phase) ──
+  document.addEventListener('click', function(e) {
+    var el = e.target;
+    while (el && el !== document) {
+      if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute('role') === 'button') {
+        var txt = (el.textContent || el.innerText || '').toLowerCase();
+        var id = (el.id || '').toLowerCase();
+        var cls = (el.className || '').toLowerCase();
+        var title = (el.getAttribute('title') || '').toLowerCase();
+        var html = (el.innerHTML || '').toLowerCase();
 
-    // Buttons that should go to advanced mode (including arrow buttons)
-    var advSelectors = [
-      '[data-mode="advanced"]',
-      '#goAdvanced', '#advancedModeBtn', '#btnAdvanced', '.go-to-advanced',
-      'button[title*="advanced" i]', 'button[title*="Advanced"]'
-    ];
-    
-    advSelectors.forEach(function(sel) {
-      try {
-        document.querySelectorAll(sel).forEach(function(btn) {
-          if (!btn._modeBound) {
-            btn.addEventListener('click', goToAdvancedMode);
-            btn._modeBound = true;
-          }
-        });
-      } catch(e) {}
-    });
-
-    // Special: any button whose text contains arrow + simple
-    document.querySelectorAll('button').forEach(function(btn) {
-      if (btn._modeBound) return;
-      var text = btn.textContent || btn.innerText || '';
-      if ((text.includes('←') || text.includes('⇐') || text.includes('<')) && /simple/i.test(text)) {
-        btn.addEventListener('click', goToSimpleMode);
-        btn._modeBound = true;
+        // ── Import ──
+        if (txt.includes('import') || id.includes('import') || cls.includes('import') || title.includes('import') || html.includes('import')) {
+          e.preventDefault(); e.stopPropagation();
+          importInput.click();
+          return;
+        }
+        // ── Export ──
+        if (txt.includes('export') || id.includes('export') || cls.includes('export') || title.includes('export') || html.includes('export')) {
+          e.preventDefault(); e.stopPropagation();
+          doExport();
+          return;
+        }
+        // ── Arrow / Simple mode switch ──
+        // Matches: ← Simple, ⇐ Simple, < simple, arrow buttons, data-mode="simple"
+        if (el.matches('[data-mode="simple"]') || 
+            ((txt.includes('←') || txt.includes('⇐') || txt.includes('<') || txt.includes('arrow')) && txt.includes('simple')) ||
+            id.includes('simple') && (txt.includes('←') || txt.includes('<')) ||
+            title.includes('simple') && (title.includes('←') || title.includes('<'))) {
+          e.preventDefault(); e.stopPropagation();
+          goToSimpleMode();
+          return;
+        }
+        // ── Advanced mode switch ──
+        if (el.matches('[data-mode="advanced"]') ||
+            ((txt.includes('→') || txt.includes('⇒') || txt.includes('>') || txt.includes('arrow')) && txt.includes('advanced')) ||
+            id.includes('advanced') && (txt.includes('→') || txt.includes('>'))) {
+          e.preventDefault(); e.stopPropagation();
+          goToAdvancedMode();
+          return;
+        }
       }
-      if ((text.includes('→') || text.includes('⇒') || text.includes('>')) && /advanced/i.test(text)) {
-        btn.addEventListener('click', goToAdvancedMode);
-        btn._modeBound = true;
-      }
-    });
-  }
+      el = el.parentElement;
+    }
+  }, true); // capture phase
 
-  // Run on DOM ready and after any dynamic updates
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindModeButtons);
-  } else {
-    bindModeButtons();
-  }
-  // Also re-bind after import renders
-  document.addEventListener('tr:rules-imported', bindModeButtons);
+  console.log('[TR] Unified event delegation active ✅ (Import/Export/ModeSwitch)');
 })();
 
 // ─── STEP 8: Preset modal ───

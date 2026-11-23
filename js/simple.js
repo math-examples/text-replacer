@@ -10,8 +10,8 @@ if (isAdvanced) return;
 function isZh() { return window.TR_LANG === 'zh' || (navigator.language || '').toLowerCase().indexOf('zh') === 0; }
 
 var D = {
-zh: { find:'查找 ✨', replace:'替换为 💖', advanced:'进入高级模式 🚀', simpleTitle:'文本替换器', simpleInput:'粘贴或输入文本...', simpleOutput:'结果将显示在这里...', simplePaste:'📋 粘贴', simpleLoad:'📂 加载', simpleAdd:'+ 添加规则', simpleViceVersa:'⇄ 全部交换', simpleReplace:'✨ 替换！', simpleSwap:'⇄ 交换', simpleCopy:'📋 复制', simpleDownload:'💾 下载', regex:'正则', caseInsensitive:'忽略大小写', copied:'💖 已复制', saved:'💾 已保存', saveRules:'💾 保存规则', loadRules:'📂 加载规则', rulesExported:'📤 规则已导出', rulesImported:'📥 规则已导入' },
-en: { find:'Find ✨', replace:'Replace with 💖', advanced:'Go to Advanced Mode 🚀', simpleTitle:'Text Replacer', simpleInput:'Paste or type text here...', simpleOutput:'Result appears here...', simplePaste:'📋 Paste', simpleLoad:'📂 Load', simpleAdd:'+ Add Rule', simpleViceVersa:'⇄ Swap All', simpleReplace:'✨ Replace!', simpleSwap:'⇄ Swap', simpleCopy:'📋 Copy', simpleDownload:'💾 Download', regex:'Regex', caseInsensitive:'Aa', copied:'💖 Copied!', saved:'💾 Saved!', saveRules:'💾 Save Rules', loadRules:'📂 Load Rules', rulesExported:'📤 Rules exported', rulesImported:'📥 Rules imported' }
+zh: { find:'查找 ✨', replace:'替换为 💖', advanced:'高级模式', simpleTitle:'文本替换器', simpleInput:'粘贴或输入文本...', simpleOutput:'结果将显示在这里...', simplePaste:'📋 粘贴', simpleLoad:'📂 加载', simpleAdd:'+ 添加规则', simpleViceVersa:'⇄ 全部交换', simpleReplace:'✨ 替换！', simpleSwap:'⇄ 交换', simpleCopy:'📋 复制', simpleDownload:'💾 下载', regex:'正则', caseInsensitive:'忽略大小写', copied:'💖 已复制', saved:'💾 已保存', saveRules:'💾 保存规则', loadRules:'📂 加载规则', rulesExported:'📤 规则已导出', rulesImported:'📥 规则已导入' },
+en: { find:'Find ✨', replace:'Replace with 💖', advanced:'Advanced', simpleTitle:'Text Replacer', simpleInput:'Paste or type text here...', simpleOutput:'Result appears here...', simplePaste:'📋 Paste', simpleLoad:'📂 Load', simpleAdd:'+ Add Rule', simpleViceVersa:'⇄ Swap All', simpleReplace:'✨ Replace!', simpleSwap:'⇄ Swap', simpleCopy:'📋 Copy', simpleDownload:'💾 Download', regex:'Regex', caseInsensitive:'Aa', copied:'💖 Copied!', saved:'💾 Saved!', saveRules:'💾 Save Rules', loadRules:'📂 Load Rules', rulesExported:'📤 Rules exported', rulesImported:'📥 Rules imported' }
 };
 function _t(k) {
 if (typeof TR_I18N !== 'undefined' && TR_I18N._) { var v = TR_I18N._(k); if (v !== k) return v; }
@@ -38,7 +38,9 @@ var style = document.createElement('style');
 style.textContent = `
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fdf2f8, #faf5ff); margin: 0; padding: 0; min-height: 100vh; }
 #simpleMode { display: block !important; padding: 16px; max-width: 600px; margin: 0 auto; padding-top: env(safe-area-inset-top, 60px); padding-bottom: 80px !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
-.simple-container h2 { text-align: center; color: #ec4899; margin-bottom: 16px; }
+.simple-container h2 { display: flex; align-items: center; justify-content: center; gap: 10px; color: #ec4899; margin-bottom: 16px; }
+.simple-container h2 .advanced-link { font-size: 12px; font-weight: 500; color: #999; text-decoration: none; padding: 4px 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; transition: all .2s; white-space: nowrap; }
+.simple-container h2 .advanced-link:hover { background: #f3f4f6; color: #666; border-color: #d1d5db; }
 .simple-rule-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
 .simple-rule-row input { flex: 1; padding: 8px 12px; border: 2px solid #fbcfe8; border-radius: 12px; font-size: 14px; }
 .simple-arrow { color: #ec4899; font-weight: bold; }
@@ -52,7 +54,6 @@ textarea { width: 100%; min-height: 100px; padding: 12px; border: 2px solid #fbc
 .btn-gray { background: #f3f4f6; color: #374151; }
 .simple-checkbox-row { display: flex; gap: 12px; align-items: center; margin: 8px 0; font-size: 13px; flex-wrap: wrap; }
 .simple-checkbox-row label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
-#simpleAdvancedBtn { position: fixed !important; bottom: max(16px, env(safe-area-inset-bottom)) !important; right: max(16px, env(safe-area-inset-right)) !important; z-index: 2147483647 !important; display: inline-block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; background: linear-gradient(135deg, #ec4899, #a855f7) !important; color: #fff !important; border: none !important; border-radius: 24px !important; padding: 12px 20px !important; font-size: 14px !important; font-weight: 700 !important; cursor: pointer !important; box-shadow: 0 6px 20px rgba(236,72,153,0.5) !important; }
 @keyframes slideUp { from{transform:translateX(-50%) translateY(20px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;} }
 `;
 document.head.appendChild(style);
@@ -61,7 +62,10 @@ document.head.appendChild(style);
 var simple = document.getElementById('simpleMode') || (function(){ var d=document.createElement('div'); d.id='simpleMode'; document.body.appendChild(d); return d; })();
 simple.innerHTML = `
 <div class="simple-container">
-<h2><span>${_t('simpleTitle')}</span></h2>
+<h2>
+  <span>${_t('simpleTitle')}</span>
+  <a class="advanced-link" href="${location.pathname}?advanced=1${location.hash}">🚀 ${_t('advanced')}</a>
+</h2>
 <div id="simpleRules">
 <div class="simple-rule-row">
 <input class="simpleFrom" placeholder="${_t('find')}">
@@ -97,12 +101,6 @@ simple.innerHTML = `
 <div id="topVersion" style="text-align:center;margin-top:12px;font-size:11px;color:#999;"></div>
 </div>
 `;
-
-var advBtn = document.createElement('button');
-advBtn.id = 'simpleAdvancedBtn';
-advBtn.textContent = '🚀 ' + _t('advanced');
-advBtn.onclick = function() { location.href = location.pathname + '?advanced=1' + location.hash; };
-document.body.appendChild(advBtn);
 
 var vMeta = document.querySelector('meta[name="version"]');
 var tv = document.getElementById('topVersion');
