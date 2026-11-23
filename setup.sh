@@ -54,9 +54,9 @@ echo "🔐 Version: ${VERSION}"
 
 # ============ ASSETS ============
 ASSETS=(
-  "css/app.css"
+  "css/app.css" "simple.css"
   "js/i18n.js" "js/state.js" "js/processor.js" "js/rules.js"
-  "js/editor.js" "js/sandbox.js" "js/batch.js" "js/presets.js" "js/ui.js" "js/app.js"
+  "js/editor.js" "js/sandbox.js" "js/batch.js" "js/presets.js" "js/ui.js" "js/app.js" "simple.js"
 )
 
 # Check files exist

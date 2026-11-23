@@ -1,0 +1,40 @@
+/* ═══════════════════════════════════════════
+   Text Replacer — Simple Mode Styles
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; overflow-x: hidden; font-family: system-ui, -apple-system, sans-serif; background: #111; color: #eee; }
+
+.simple-mode { display: flex; justify-content: center; padding: 20px; }
+.simple-container { max-width: 900px; width: 100%; }
+.simple-container h2 { margin: 0 0 4px 0; font-size: 20px; }
+.simple-container p { margin: 0 0 12px 0; }
+
+/* Multi-rule rows */
+.simple-rules { margin-bottom: 8px; }
+.simple-rule-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
+.simple-rule-row input { flex: 1; min-width: 100px; padding: 6px 8px; background: #1e1e1e; color: #eee; border: 1px solid #444; border-radius: 3px; }
+.simple-rule-row .simple-arrow { color: #888; flex-shrink: 0; font-size: 14px; }
+.simple-rule-row .simple-remove-rule { background: #c0392b; color: #fff; border: none; padding: 4px 8px; cursor: pointer; font-size: 11px; border-radius: 3px; }
+.simple-rule-actions { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+.simple-rule-actions button { background: #333; color: #ccc; border: 1px solid #555; padding: 4px 10px; cursor: pointer; font-size: 11px; border-radius: 3px; }
+.simple-rule-actions button:hover { background: #444; }
+.simple-rule-actions label { font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+/* Textareas */
+.simple-panes { display: flex; gap: 8px; flex-wrap: wrap; }
+.simple-panes textarea { flex: 1 1 48%; min-width: 0; max-width: 100%; word-break: break-all; resize: vertical; height: 180px; background: #1e1e1e; color: #eee; border: 1px solid #444; padding: 8px; border-radius: 3px; font-family: inherit; }
+.simple-actions { margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.btn-primary { background: #2980b9; color: #fff; border: none; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 12px; }
+.btn-secondary { background: #444; color: #eee; border: none; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 12px; }
+.btn-ghost { background: transparent; color: #888; border: 1px solid #555; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 12px; }
+.btn-ghost:hover { color: #ccc; border-color: #777; }
+
+@media (max-width: 600px) {
+  .simple-panes { flex-direction: column; }
+  .simple-panes textarea { flex: 1 1 100%; }
+  .simple-rule-row { flex-direction: column; align-items: stretch; }
+  .simple-rule-row .simple-arrow { text-align: center; }
+}
+
+/* Full UI hidden by default */
+#fullUI { display: none; }

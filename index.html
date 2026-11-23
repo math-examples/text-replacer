@@ -4,264 +4,178 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<meta name="version" content="v1.0.12">
+<meta name="version" content="v1.0.13">
 <meta name="cdn-owner" content="math-examples">
 <meta name="cdn-repo" content="text-replacer">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
-<style>
-/* ═══ Viewport / mobile fixes ═══ */
-*, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; overflow-x: hidden; }
-.simple-panes { display: flex; gap: 8px; flex-wrap: wrap; }
-.simple-panes textarea { flex: 1 1 48%; min-width: 0; max-width: 100%; word-break: break-all; resize: vertical; }
-.simple-actions { flex-wrap: wrap; }
-.simple-rule { flex-wrap: wrap; }
-@media (max-width: 600px) {
-  .simple-panes { flex-direction: column; }
-  .simple-panes textarea { flex: 1 1 100%; }
-}
-/* Hide full UI initially */
-#fullUI { display: none; }
-</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/css/simple.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
 </head>
 <body>
-<!-- ═══════════ VERSION BANNER (TOP) ═══════════ -->
+
+<!-- ═══════════ VERSION BANNER ═══════════ -->
 <div id="versionBanner" style="background:#1e1e1e;color:#ccc;padding:4px 12px;font-size:11px;text-align:center;border-bottom:1px solid #333;display:flex;justify-content:center;align-items:center;gap:12px;">
-<span>Text Replacer <span id="topVersion"></span></span>
-<label style="font-size:10px;color:#888;cursor:pointer;user-select:none;" title="Disable SRI hash check (debug only)">
-<input type="checkbox" id="toggleSRI" style="vertical-align:middle;"> Disable SRI
-</label>
+  <span>Text Replacer <span id="topVersion"></span></span>
+  <label style="font-size:10px;color:#888;cursor:pointer;user-select:none;" title="Disable SRI hash check (debug only)">
+    <input type="checkbox" id="toggleSRI" style="vertical-align:middle;"> Disable SRI
+  </label>
 </div>
-<!-- ═══════════ ERROR BANNER (hidden by default) ═══════════ -->
+
+<!-- ═══════════ ERROR BANNER ═══════════ -->
 <div id="loadErrorBanner" style="display:none;background:#c0392b;color:#fff;padding:10px 16px;font-size:13px;text-align:center;position:relative;z-index:10000;">
-<span id="loadErrorMsg"></span>
-<span style="float:right;cursor:pointer;font-weight:bold;" onclick="this.parentElement.style.display='none'">✕</span>
+  <span id="loadErrorMsg"></span>
+  <span style="float:right;cursor:pointer;font-weight:bold;" onclick="this.parentElement.style.display='none'">✕</span>
 </div>
 
 <!-- ═══════════ SIMPLE MODE ═══════════ -->
 <div id="simpleMode" class="simple-mode">
-<div class="simple-container" style="max-width:900px;width:100%;padding:20px;">
-<h2><span id="t-title">Text</span> Replacer</h2>
-<p class="simple-hint" id="t-simple-hint" style="color:#888;font-size:12px;">Paste text, set find &amp; replace, and go.</p>
-<div class="simple-rule" style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
-<input id="simpleFrom" placeholder="Find (literal or /regex/)" style="flex:1;min-width:120px;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
-<span class="simple-arrow">→</span>
-<input id="simpleTo" placeholder="Replace with" style="flex:1;min-width:120px;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
-<label class="simple-toggle" style="font-size:11px;"><input type="checkbox" id="simpleRegex">Regex</label>
-<label class="simple-toggle" style="font-size:11px;"><input type="checkbox" id="simpleCase">Aa</label>
-</div>
-<div class="simple-panes">
-<textarea id="simpleInput" spellcheck="false" placeholder="Paste or type text here..."></textarea>
-<textarea id="simpleOutput" readonly spellcheck="false" placeholder="Result appears here..."></textarea>
-</div>
-<div class="simple-actions" style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-<button id="simpleReplace" class="btn-primary">&#128260; Replace</button>
-<button id="simplePaste" class="btn-secondary">&#128203; Paste</button>
-<button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
-<button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
-<span class="simple-spacer" style="flex:1;"></span>
-<button id="simpleAdvanced" class="btn-ghost" title="Unlock multiple rules, diff view, sandbox, batch processing, presets, undo/redo, and more">
-&#9881; Advanced <span class="advanced-arrow">&#9662;</span>
-</button>
-</div>
-<div class="simple-feature-hint" id="advancedFeatureHint" style="margin-top:8px;font-size:11px;color:#666;">
-<span class="feature-hint-text">
-&#128161; <strong>Advanced</strong> unlocks: multiple rules, regex sandbox, line-by-line diff, batch file processing, presets, undo/redo, and more. You can switch back anytime.
-</span>
-</div>
+<div class="simple-container">
+  <h2>Text Replacer</h2>
+  <p style="color:#888;font-size:12px;">Paste text, set find &amp; replace pairs, and go.</p>
+
+  <!-- Multi-pair rules -->
+  <div class="simple-rules" id="simpleRules">
+    <div class="simple-rule-row" data-index="0">
+      <input class="simpleFrom" placeholder="Find (literal or /regex/)">
+      <span class="simple-arrow">→</span>
+      <input class="simpleTo" placeholder="Replace with">
+      <button class="simple-remove-rule" title="Remove" style="display:none;">✕</button>
+    </div>
+  </div>
+
+  <!-- Rule actions -->
+  <div class="simple-rule-actions">
+    <button id="addSimpleRule">+ Add pair</button>
+    <button id="viceVersaBtn">⇄ Vice versa</button>
+    <label><input type="checkbox" id="simpleRegex"> Regex</label>
+    <label><input type="checkbox" id="simpleCase"> Aa</label>
+  </div>
+
+  <!-- Textareas -->
+  <div class="simple-panes">
+    <textarea id="simpleInput" spellcheck="false" placeholder="Paste or type text here..."></textarea>
+    <textarea id="simpleOutput" readonly spellcheck="false" placeholder="Result appears here..."></textarea>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="simple-actions">
+    <button id="simpleReplace" class="btn-primary">&#128260; Replace</button>
+    <button id="simplePaste" class="btn-secondary">&#128203; Paste</button>
+    <button id="simpleLoad" class="btn-secondary">&#128194; Load</button>
+    <button id="simpleSwap" class="btn-secondary" title="Swap input and output">&#8644; Swap</button>
+    <button id="simpleCopy" class="btn-secondary">&#128203; Copy</button>
+    <button id="simpleDownload" class="btn-secondary">&#128190; Save</button>
+    <span style="flex:1"></span>
+    <button id="simpleAdvanced" class="btn-ghost">&#9881; Advanced</button>
+  </div>
+
+  <div style="margin-top:8px;font-size:11px;color:#666;">
+    &#128161; <strong>Advanced</strong> unlocks: multiple rules, regex sandbox, line-by-line diff, batch file processing, presets, undo/redo, and more.
+  </div>
 </div>
 </div>
 
-<!-- FULL UI (hidden until Advanced clicked) -->
+<!-- ═══════════ FULL UI (Advanced Mode) ═══════════ -->
 <div id="fullUI">
-<div class="header">
-<h1><span id="t-title2">Text</span> Replacer <span id="headerVersion" style="font-size:10px;color:#555;margin-left:8px;font-weight:400;"></span></h1>
-<div class="toolbar">
-<button id="btnUndo" title="Ctrl+Z"><span id="t-undo">&#8617; Undo</span></button>
-<button id="btnRedo" title="Ctrl+Y"><span id="t-redo">&#8618; Redo</span></button>
-<button id="btnCopy"><span id="t-copy">&#128203; Copy</span></button>
-<button id="btnDownload"><span id="t-dl">&#128190; Save</span></button>
-<button id="btnLoad"><span id="t-load">&#128194; Load</span></button>
-<button id="btnPreset"><span id="t-preset">&#128230; Presets</span></button>
-<button id="btnBackSimple" class="btn-ghost-header">&#8592; Simple</button>
+<div class="header" style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#1a1a1a;border-bottom:1px solid #333;">
+  <h1 style="margin:0;font-size:16px;">Text Replacer Advanced <span id="headerVersion" style="font-size:10px;color:#555;font-weight:400;"></span></h1>
+  <div class="toolbar" style="display:flex;gap:6px;flex-wrap:wrap;">
+    <button id="btnUndo" class="btn-secondary">&#8617; Undo</button>
+    <button id="btnRedo" class="btn-secondary">&#8618; Redo</button>
+    <button id="btnCopy" class="btn-secondary">&#128203; Copy</button>
+    <button id="btnDownload" class="btn-secondary">&#128190; Save</button>
+    <button id="btnLoad" class="btn-secondary">&#128194; Load</button>
+    <button id="btnPreset" class="btn-secondary">&#128230; Presets</button>
+    <button id="btnBackSimple" class="btn-ghost">&#8592; Simple</button>
+  </div>
 </div>
+<div class="tabs" style="display:flex;background:#1a1a1a;border-bottom:1px solid #333;overflow-x:auto;">
+  <div class="tab active" data-panel="rules" style="padding:8px 16px;cursor:pointer;font-size:12px;border-bottom:2px solid #2980b9;">&#128260; Rules</div>
+  <div class="tab" data-panel="editor" style="padding:8px 16px;cursor:pointer;font-size:12px;">&#128221; Editor</div>
+  <div class="tab" data-panel="diff" style="padding:8px 16px;cursor:pointer;font-size:12px;">&#128269; Diff</div>
+  <div class="tab" data-panel="sandbox" style="padding:8px 16px;cursor:pointer;font-size:12px;">&#129514; Sandbox</div>
+  <div class="tab" data-panel="batch" style="padding:8px 16px;cursor:pointer;font-size:12px;">&#128230; Batch</div>
 </div>
-<div class="tabs">
-<div class="tab active" data-panel="rules"><span id="t-tab-rules">&#128260; Rules</span></div>
-<div class="tab" data-panel="editor"><span id="t-tab-edit">&#128221; Editor</span></div>
-<div class="tab" data-panel="diff"><span id="t-tab-diff">&#128269; Diff</span></div>
-<div class="tab" data-panel="sandbox"><span id="t-tab-sand">&#129514; Sandbox</span></div>
-<div class="tab" data-panel="batch"><span id="t-tab-batch">&#128230; Batch</span></div>
+<div class="panel active" id="panel-rules"><div class="rules-panel" style="padding:16px;">
+  <div class="rules-toolbar" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+    <input type="text" id="ruleSearch" placeholder="Search rules..." style="flex:1;min-width:120px;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
+    <button id="addRule" class="btn-primary">+ Add</button>
+    <button id="clearRules" class="btn-secondary">Clear</button>
+    <button id="importRules" class="btn-secondary">Import</button>
+    <button id="exportRules" class="btn-secondary">Export</button>
+  </div>
+  <div class="rules-list" id="rulesList"></div>
+</div></div>
+<div class="panel" id="panel-editor" style="display:none;"><div class="editor-pane" style="display:flex;flex-wrap:wrap;">
+  <div style="flex:1 1 48%;min-width:300px;padding:8px;">
+    <div style="font-size:12px;margin-bottom:4px;">&#128225; Input <span class="stats" id="inputStats">0</span></div>
+    <textarea id="input" spellcheck="false" style="width:100%;height:300px;background:#1e1e1e;color:#eee;border:1px solid #444;padding:8px;" placeholder="Paste or type..."></textarea>
+  </div>
+  <div style="flex:1 1 48%;min-width:300px;padding:8px;">
+    <div style="font-size:12px;margin-bottom:4px;">&#128228; Output <span class="stats" id="outputStats">0</span></div>
+    <textarea id="output" readonly spellcheck="false" style="width:100%;height:300px;background:#1e1e1e;color:#eee;border:1px solid #444;padding:8px;" placeholder="Output..."></textarea>
+  </div>
+</div></div>
+<div class="panel" id="panel-diff" style="display:none;"><div style="padding:16px;">
+  <div style="font-size:12px;margin-bottom:4px;">&#128269; Diff <span class="stats" id="diffStats">0</span></div>
+  <div class="diff-output" id="diffOutput" style="background:#1e1e1e;min-height:200px;padding:8px;border:1px solid #444;"></div>
+</div></div>
+<div class="panel" id="panel-sandbox" style="display:none;"><div class="sandbox" style="padding:16px;">
+  <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center;">
+    <label style="font-size:12px;min-width:50px;">From:</label>
+    <input id="sbFrom" placeholder="literal or /regex/" style="flex:1;min-width:120px;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
+    <label style="font-size:11px;"><input type="checkbox" id="sbRegex">Regex</label>
+    <label style="font-size:11px;"><input type="checkbox" id="sbCase">Aa</label>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center;">
+    <label style="font-size:12px;min-width:50px;">To:</label>
+    <input id="sbTo" placeholder="replacement" style="flex:1;min-width:120px;padding:6px;background:#1e1e1e;color:#eee;border:1px solid #444;">
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center;">
+    <label style="font-size:12px;min-width:50px;">Test:</label>
+    <button id="sbRun" class="btn-primary">&#9654; Run</button>
+    <button id="sbClear" class="btn-secondary">Clear</button>
+  </div>
+  <div class="sandbox-result" id="sbResult" style="background:#1e1e1e;padding:8px;border:1px solid #444;min-height:60px;"><span style="color:#666;">Result...</span></div>
+</div></div>
+<div class="panel" id="panel-batch" style="display:none;"><div class="batch" style="padding:16px;">
+  <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+    <button id="batchAdd" class="btn-primary">+ Add Files</button>
+    <button id="batchRun" class="btn-primary">&#9654; Process All</button>
+    <button id="batchClear" class="btn-secondary">Clear</button>
+  </div>
+  <div class="batch-list" id="batchList"><div style="color:#666;padding:8px;">No files queued</div></div>
+</div></div>
+<div class="modal-overlay" id="presetModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+  <div class="modal" style="background:#222;border:1px solid #444;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;">
+    <div class="modal-header" style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #333;">
+      <h3 style="margin:0;font-size:14px;">Presets</h3>
+      <button id="closePreset" style="background:none;border:none;color:#888;cursor:pointer;font-size:16px;">&#10005;</button>
+    </div>
+    <div class="modal-body" id="presetList" style="padding:16px;"></div>
+    <div class="modal-footer" style="padding:12px 16px;border-top:1px solid #333;">
+      <button id="savePreset" class="btn-primary">&#128190; Save Current</button>
+    </div>
+  </div>
 </div>
-<div class="panel active" id="panel-rules"><div class="rules-panel">
-<div class="rules-toolbar">
-<input type="text" id="ruleSearch" placeholder="Search rules...">
-<button id="addRule">+ <span id="t-add">Add</span></button>
-<button id="clearRules"><span id="t-clear">Clear</span></button>
-<button id="importRules"><span id="t-import">Import</span></button>
-<button id="exportRules"><span id="t-export">Export</span></button>
-</div>
-<div class="rules-list" id="rulesList"></div>
-</div></div>
-<div class="panel" id="panel-editor"><div class="editor-pane">
-<div class="pane-header"><span id="t-input">&#128225; Input</span><span class="stats" id="inputStats">0</span></div>
-<div class="editor-wrap"><textarea id="input" spellcheck="false" placeholder="Paste or type..."></textarea><div class="highlight-layer" id="inputHL"></div></div>
-</div><div class="editor-pane">
-<div class="pane-header"><span id="t-output">&#128228; Output</span><span class="stats" id="outputStats">0</span></div>
-<div class="editor-wrap"><textarea id="output" readonly spellcheck="false" placeholder="Output..."></textarea><div class="highlight-layer" id="outputHL"></div></div>
-</div></div>
-<div class="panel" id="panel-diff"><div class="editor-pane">
-<div class="pane-header"><span id="t-diff">&#128269; Diff</span><span class="stats" id="diffStats">0</span></div>
-<div class="diff-output" id="diffOutput"></div>
-</div></div>
-<div class="panel" id="panel-sandbox"><div class="sandbox">
-<div class="sandbox-row"><label><span id="t-sb-from">From:</span></label><input id="sbFrom" placeholder="literal or /regex/"><label><input type="checkbox" id="sbRegex">Regex</label><label><input type="checkbox" id="sbCase">Aa</label></div>
-<div class="sandbox-row"><label><span id="t-sb-to">To:</span></label><input id="sbTo" placeholder="replacement"></div>
-<div class="sandbox-row"><label><span id="t-sb-test">Test text:</span></label><button id="sbRun" class="btn-primary"><span id="t-sb-run">&#9654; Run</span></button><button id="sbClear" class="btn-secondary"><span id="t-sb-clr">Clear</span></button></div>
-<div class="sandbox-result" id="sbResult"><span class="placeholder">Result will appear here...</span></div>
-</div></div>
-<div class="panel" id="panel-batch"><div class="batch">
-<div class="sandbox-row"><button id="batchAdd" class="btn-primary">+ <span id="t-bt-add">Add Files</span></button><button id="batchRun" class="btn-success"><span id="t-bt-run">&#9654; Process All</span></button><button id="batchClear" class="btn-secondary"><span id="t-bt-clr">Clear</span></button></div>
-<div class="batch-list" id="batchList"><div class="empty">No files queued</div></div>
-</div></div>
-<div class="modal-overlay" id="presetModal"><div class="modal">
-<div class="modal-header"><h3 id="t-pre-title">Presets</h3><button id="closePreset" class="btn-close">&#10005;</button></div>
-<div class="modal-body" id="presetList"></div>
-<div class="modal-footer"><button id="savePreset" class="btn-primary"><span id="t-pre-save">&#128190; Save Current</span></button></div>
-</div></div>
 <input type="file" id="fileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
-<div class="toast-container" id="toastContainer"></div>
-</div><!-- /#fullUI -->
+<input type="file" id="simpleFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none">
+<div class="toast-container" id="toastContainer" style="position:fixed;bottom:20px;right:20px;z-index:10000;"></div>
+</div>
 
-<!-- ═══════════ STATIC CDN SCRIPTS ═══════════ -->
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('i18n.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('state.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/processor.js" integrity="sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('processor.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/rules.js" integrity="sha384-mnErVyXj32dHXFE2VeWyhhQVm7JL4tx0JV2S9EeEFEVbTbC2RS9AH88gYtyZKBy0" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('rules.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('editor.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/sandbox.js" integrity="sha384-GgzDVGRZWUBpI9KmDlNKzBnQ2ME8HXs3a/leckN/F/sAusCnZww7jbVhRo6GZW97" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('sandbox.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('batch.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('presets.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('ui.js')"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.12/js/app.js" integrity="sha384-m4PXRGumkM74kG6hP2crlmDbF8hBhxDFQpq8QkwZQ9rz9L7nGyZFrH2eBjxQ60bv" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('app.js')"></script>
+<!-- ═══════════ STATIC CDN SCRIPTS (jsDelivr) ═══════════ -->
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('i18n.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('state.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/processor.js" integrity="sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('processor.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/rules.js" integrity="sha384-mnErVyXj32dHXFE2VeWyhhQVm7JL4tx0JV2S9EeEFEVbTbC2RS9AH88gYtyZKBy0" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('rules.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('editor.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/sandbox.js" integrity="sha384-GgzDVGRZWUBpI9KmDlNKzBnQ2ME8HXs3a/leckN/F/sAusCnZww7jbVhRo6GZW97" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('sandbox.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('batch.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('presets.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('ui.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/app.js" integrity="sha384-m4PXRGumkM74kG6hP2crlmDbF8hBhxDFQpq8QkwZQ9rz9L7nGyZFrH2eBjxQ60bv" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('app.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.13/js/simple.js" integrity="sha384-fake" crossorigin="anonymous"></script>
 
-<!-- ═══════════ INLINE FALLBACK & FIXES ═══════════ -->
-<script>
-(function(){
-  // --- Version from meta (no hardcoded fallback) ---
-  var vMeta = document.querySelector('meta[name="version"]');
-  var VERSION = vMeta ? vMeta.content : 'v1.0.9';
-  var tv = document.getElementById('topVersion');
-  var hv = document.getElementById('headerVersion');
-  if(tv) tv.textContent = VERSION;
-  if(hv) hv.textContent = VERSION;
-
-  // --- SRI Toggle (debug) ---
-  var DISABLE_SRI = localStorage.getItem('tr_disable_sri') === '1' || new URLSearchParams(location.search).has('nohash');
-  var toggle = document.getElementById('toggleSRI');
-  if(toggle){ toggle.checked = DISABLE_SRI; toggle.onchange = function(){ localStorage.setItem('tr_disable_sri', this.checked ? '1' : '0'); location.reload(); }; }
-
-  // --- Bug 1 fix: Advanced toggle ---
-  var simpleMode = document.getElementById('simpleMode');
-  var fullUI = document.getElementById('fullUI');
-  var btnAdvanced = document.getElementById('simpleAdvanced');
-  var btnBackSimple = document.getElementById('btnBackSimple');
-
-  function showAdvanced(){
-    simpleMode.style.display = 'none';
-    fullUI.style.display = 'block';
-    window.scrollTo(0,0);
-  }
-  function showSimple(){
-    simpleMode.style.display = '';
-    fullUI.style.display = 'none';
-    window.scrollTo(0,0);
-  }
-
-  if(btnAdvanced) btnAdvanced.addEventListener('click', showAdvanced);
-  if(btnBackSimple) btnBackSimple.addEventListener('click', showSimple);
-
-  // --- Bug 3 fix: Paste button ---
-  var btnPaste = document.getElementById('simplePaste');
-  var simpleInput = document.getElementById('simpleInput');
-  if(btnPaste && simpleInput){
-    btnPaste.addEventListener('click', function(){
-      if(navigator.clipboard && navigator.clipboard.readText){
-        navigator.clipboard.readText().then(function(text){
-          simpleInput.value = text;
-          simpleInput.focus();
-        }).catch(function(){
-          // Fallback: execCommand
-          simpleInput.focus();
-          document.execCommand('paste');
-        });
-      } else {
-        simpleInput.focus();
-        document.execCommand('paste');
-      }
-    });
-  }
-
-  // --- Simple mode inline logic (fallback if JS modules fail) ---
-  var btnReplace = document.getElementById('simpleReplace');
-  var btnCopy = document.getElementById('simpleCopy');
-  var btnDownload = document.getElementById('simpleDownload');
-  var simpleOutput = document.getElementById('simpleOutput');
-  var simpleFrom = document.getElementById('simpleFrom');
-  var simpleTo = document.getElementById('simpleTo');
-  var simpleRegex = document.getElementById('simpleRegex');
-  var simpleCase = document.getElementById('simpleCase');
-
-  if(btnReplace) btnReplace.onclick = function(){
-    var input = simpleInput.value;
-    var from = simpleFrom.value;
-    var to = simpleTo.value;
-    var regex = simpleRegex && simpleRegex.checked;
-    var casei = simpleCase && simpleCase.checked;
-    if(!from) return;
-    try {
-      var re = regex ? new RegExp(from, 'g' + (casei?'i':'')) : new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'g' + (casei?'i':''));
-      simpleOutput.value = input.replace(re, to);
-    } catch(e) { simpleOutput.value = 'Regex error: ' + e.message; }
-  };
-  if(btnCopy) btnCopy.onclick = function(){
-    if(!simpleOutput.value) return;
-    simpleOutput.select();
-    document.execCommand('copy');
-    // toast if available
-    if(window.TR_UI && TR_UI.toast) TR_UI.toast('Copied!');
-    else { /* ephemeral feedback */ btnCopy.textContent = '✓ Copied'; setTimeout(function(){ btnCopy.innerHTML = '&#128203; Copy'; }, 1500); }
-  };
-  if(btnDownload) btnDownload.onclick = function(){
-    var blob = new Blob([simpleOutput.value || ''], {type:'text/plain'});
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'output.txt'; a.click();
-  };
-
-  // --- Load verification (unchanged) ---
-  setTimeout(function(){
-    var errors = window.__scriptLoadErrors || [];
-    var missingGlobals = [];
-    if(typeof TR_I18N === 'undefined') missingGlobals.push('TR_I18N');
-    if(typeof TR_STATE === 'undefined') missingGlobals.push('TR_STATE');
-    if(typeof TR_PROCESSOR === 'undefined') missingGlobals.push('TR_PROCESSOR');
-    if(typeof TR_RULES === 'undefined') missingGlobals.push('TR_RULES');
-    if(typeof TR_UI === 'undefined') missingGlobals.push('TR_UI');
-
-    if(errors.length > 0 || missingGlobals.length > 0){
-      var banner = document.getElementById('loadErrorBanner');
-      var msg = document.getElementById('loadErrorMsg');
-      var parts = [];
-      if(errors.length > 0) parts.push('Failed to load: ' + errors.join(', '));
-      if(missingGlobals.length > 0) parts.push('Missing objects: ' + missingGlobals.join(', '));
-      parts.push('Please check your internet connection, verify the version tag, or run ./setup.sh to update SRI hashes.');
-      msg.innerHTML = parts.join('<br>');
-      banner.style.display = 'block';
-      console.error('Text Replacer load errors:', {errors: errors, missingGlobals: missingGlobals});
-    }
-  }, 500);
-})();
-</script>
 </body>
 </html>
