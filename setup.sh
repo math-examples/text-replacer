@@ -52,24 +52,31 @@ echo "🔐 Owner:   ${OWNER}"
 echo "🔐 Repo:    ${REPO}"
 echo "🔐 Version: ${VERSION}"
 
-# ============ ASSETS ============
-ASSETS=(
-  "css/app.css" "simple.css"
-  "js/i18n.js" "js/state.js" "js/processor.js" "js/rules.js"
-  "js/editor.js" "js/sandbox.js" "js/batch.js" "js/presets.js" "js/ui.js" "js/app.js" "simple.js"
-)
+# ============ AUTO-DISCOVER ASSETS ============
+ASSETS=()
 
-# Check files exist
-for f in "${ASSETS[@]}"; do
-  if [ ! -f "$f" ]; then
-    echo "⚠️  ${f} not found; skipping"
-  fi
-done
-
-if [ ! -f index.html ]; then
-  echo "❌ index.html not found" >&2
-  exit 1
+# Discover all CSS files in css/ directory
+if [ -d "css" ]; then
+  while IFS= read -r -d '' f; do
+    # Strip leading ./ if present, keep relative path like css/app.css
+    f="${f#./}"
+    ASSETS+=("$f")
+  done < <(find css -maxdepth 1 -type f -name '*.css' -print0 | sort -z)
 fi
+
+# Discover all JS files in js/ directory
+if [ -d "js" ]; then
+  while IFS= read -r -d '' f; do
+    f="${f#./}"
+    ASSETS+=("$f")
+  done < <(find js -maxdepth 1 -type f -name '*.js' -print0 | sort -z)
+fi
+
+if [ ${#ASSETS[@]} -eq 0 ]; then
+  echo "⚠️  No CSS or JS assets found in css/ or js/" >&2
+fi
+
+echo "📦 Discovered ${#ASSETS[@]} asset(s): ${ASSETS[*]}"
 
 # ============ SRI HASHES ============
 declare -A SRI
@@ -81,8 +88,20 @@ for f in "${ASSETS[@]}"; do
     echo "  ✅ ${f} → sha384-${hash:0:20}..."
   else
     SRI[$f]=""
+    echo "  ⚠️  ${f} not found; skipping"
   fi
 done
+
+if [ ! -f index.html ]; then
+  echo "❌ index.html not found" >&2
+  exit 1
+fi
+
+# ============ HELPER: escape string for sed address/regex ============
+# Escapes dots, slashes, and other regex special chars for use in sed patterns
+sed_escape() {
+  printf '%s' "$1" | sed 's|\\|\\\\|g; s|/|\\/|g; s|\.|\\.|g; s|*|\\*|g; s|+|\\+|g'
+}
 
 # ============ UPDATE index.html ============
 cp index.html index.html.bak
@@ -98,31 +117,30 @@ sedi "s|<meta name=\"cdn-repo\" content=\"[^\"]*\">|<meta name=\"cdn-repo\" cont
 sedi "s|@v[0-9][^/]*/|@${VERSION}/|g" index.html
 sedi "s|@[0-9]\{14,\}/|@${VERSION}/|g" index.html
 
-# --- 4. Update CSS integrity (match link tag with stylesheet) ---
-CSS_SRI="${SRI[css/app.css]}"
-if [ -n "$CSS_SRI" ]; then
-  # Escape slashes and special chars for sed
-  css_sri_esc="$(printf '%s' "$CSS_SRI" | sed 's|/|\\/|g')"
-  sedi "/<link rel=\"stylesheet\"/ s|integrity=\"[^\"]*\"|integrity=\"${css_sri_esc}\"|" index.html
-fi
-
-# --- 5. Update each JS integrity (match script tag containing filename) ---
+# --- 4 & 5. Update integrity for each asset (CSS link tags + JS script tags) ---
 for f in "${ASSETS[@]}"; do
-  [ "$f" = "css/app.css" ] && continue
   sri="${SRI[$f]:-}"
   [ -n "$sri" ] || continue
-  fname="$(basename "$f")"
-  # Escape slashes in SRI for sed
+
+  f_esc="$(sed_escape "$f")"
   sri_esc="$(printf '%s' "$sri" | sed 's|/|\\/|g')"
-  sedi "/${fname}/ s|integrity=\"[^\"]*\"|integrity=\"${sri_esc}\"|" index.html
+
+  if [[ "$f" == css/* ]]; then
+    # Match <link> tags referencing this CSS file
+    sedi "/<link.*${f_esc}/ s|integrity=\"[^\"]*\"|integrity=\"${sri_esc}\"|" index.html
+  elif [[ "$f" == js/* ]]; then
+    # Match <script> tags referencing this JS file
+    sedi "/<script.*${f_esc}/ s|integrity=\"[^\"]*\"|integrity=\"${sri_esc}\"|" index.html
+  fi
 done
 
-# --- 6. Update SRI_MAP in inline loader ---
+# --- 6. Update SRI_MAP in inline loader (if present) ---
 for f in "${ASSETS[@]}"; do
   sri="${SRI[$f]:-}"
   [ -n "$sri" ] || continue
-  # Escape for JS string (no slashes issue)
-  sedi "s|\"${f}\": \"[^\"]*\"|\"${f}\": \"${sri}\"|" index.html
+  # Escape quotes and slashes for JS string context
+  f_esc_json="$(printf '%s' "$f" | sed 's|"|\\"|g')"
+  sedi "s|\"${f_esc_json}\": \"[^\"]*\"|\"${f_esc_json}\": \"${sri}\"|" index.html
 done
 
 # ============ DIFF SUMMARY ============
