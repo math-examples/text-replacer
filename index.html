@@ -3,13 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="version" content="v1.0.8">
+<meta name="version" content="v1.0.9">
 <meta name="cdn-owner" content="math-examples">
 <meta name="cdn-repo" content="text-replacer">
 <title>Text Replacer</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/css/app.css" integrity="sha384-A4ejZ3LciDivNNeQeZirDuCX5x27AnyzE4gG5GUIuBY5sPz3YCR6EDFI5ww2XGrc" crossorigin="anonymous">
 </head>
 <body>
+<!-- ═══════════ VERSION BANNER (TOP) ═══════════ -->
+<div id="versionBanner" style="background:#1e1e1e;color:#ccc;padding:4px 12px;font-size:11px;text-align:center;border-bottom:1px solid #333;">
+Text Replacer <span id="topVersion"></span>
+</div>
+<!-- ═══════════ ERROR BANNER (hidden by default) ═══════════ -->
+<div id="loadErrorBanner" style="display:none;background:#c0392b;color:#fff;padding:10px 16px;font-size:13px;text-align:center;position:relative;z-index:10000;">
+<span id="loadErrorMsg"></span>
+<span style="float:right;cursor:pointer;font-weight:bold;" onclick="this.parentElement.style.display='none'">✕</span>
+</div>
+
 <!-- ═══════════ SIMPLE MODE ═══════════ -->
 <div id="simpleMode" class="simple-mode">
 <div class="simple-container">
@@ -42,9 +52,10 @@
 </div>
 </div>
 </div>
+
 <!-- FULL UI -->
 <div class="header">
-<h1><span id="t-title2">Text</span> Replacer</h1>
+<h1><span id="t-title2">Text</span> Replacer <span id="headerVersion" style="font-size:10px;color:#555;margin-left:8px;font-weight:400;"></span></h1>
 <div class="toolbar">
 <button id="btnUndo" title="Ctrl+Z"><span id="t-undo">&#8617; Undo</span></button>
 <button id="btnRedo" title="Ctrl+Y"><span id="t-redo">&#8618; Redo</span></button>
@@ -101,47 +112,54 @@
 <input type="file" id="fileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <input type="file" id="batchFileInput" accept="text/*,.csv,.json,.xml,.html,.js,.ts,.md" style="display:none" multiple>
 <div class="toast-container" id="toastContainer"></div>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/processor.js" integrity="sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/rules.js" integrity="sha384-mnErVyXj32dHXFE2VeWyhhQVm7JL4tx0JV2S9EeEFEVbTbC2RS9AH88gYtyZKBy0" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/sandbox.js" integrity="sha384-GgzDVGRZWUBpI9KmDlNKzBnQ2ME8HXs3a/leckN/F/sAusCnZww7jbVhRo6GZW97" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.8/js/app.js" integrity="sha384-r5C/glM/1vz2hrCa0Bpi7828mAS7QcsTycjUoUlaeH9EAHHKhAW/wwMxv8SMGiwx" crossorigin="anonymous"></script>
-<script>
-// ─── Simple version-based cache busting (replaces entire hash-check system) ───
-(function(){
-var VERSION = document.querySelector('meta[name="version"]').content;
-var stored = localStorage.getItem('tr-version');
-if (stored && stored !== VERSION) {
-// Version changed → clear old caches, unregister SW
-console.log('App updated:', stored, '→', VERSION);
-if (navigator.serviceWorker) {
-navigator.serviceWorker.getRegistrations().then(function(rs){
-rs.forEach(function(r){ r.unregister(); });
-});
-}
-// Clear any old app caches if you use Cache API
-if (window.caches) {
-caches.keys().then(function(names){
-names.forEach(function(n){ caches.delete(n); });
-});
-}
-}
-localStorage.setItem('tr-version', VERSION);
-})();
-</script>
-<!-- Version footer -->
-<div id="versionFooter" style="text-align:center;padding:6px;font-size:11px;color:#555;background:#252526;border-top:1px solid #3c3c3c;">
-Text Replacer <span id="vfVersion"></span>
-</div>
+
+<!-- ═══════════ STATIC CDN SCRIPTS (fake SRI, replaced by setup.sh) ═══════════ -->
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/i18n.js" integrity="sha384-9DTzVBmf9tJRcbbPIQMBi8gwMXMe3cox/+ZARgYYyDvSz+avnahwgr32x9RVprsO" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('i18n.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/state.js" integrity="sha384-cjZzFyJtBySUz1Si+vDxYMJo+0kVs8+dvZeBdke6UyCJHSD9btMn0V8dfm7UZsPs" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('state.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/processor.js" integrity="sha384-v2yQHVN0WYaf7n1Ubq0rK6nn0KYzEl3pN8gi2VnnwJp3eGiwUBtnLbRd8e5HffDS" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('processor.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/rules.js" integrity="sha384-mnErVyXj32dHXFE2VeWyhhQVm7JL4tx0JV2S9EeEFEVbTbC2RS9AH88gYtyZKBy0" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('rules.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/editor.js" integrity="sha384-g6JIMbXNi8MbPw+cU8T1yH/mQsAXEikXqt84253gzvxxJ/m6QXBxcbv0/27OtcUr" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('editor.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/sandbox.js" integrity="sha384-GgzDVGRZWUBpI9KmDlNKzBnQ2ME8HXs3a/leckN/F/sAusCnZww7jbVhRo6GZW97" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('sandbox.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/batch.js" integrity="sha384-0K+7Pmzz6a1rnxV2+rlX1Y6IYW7OjOdoAM7ANGxUrGDxxz767Ytw0NiDQntFRgib" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('batch.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/presets.js" integrity="sha384-Ul0hcKHX9hVI3dPtayApkZ1lMyJsK6bq+goC0gyMFNQ8yjdaQq+h3ZAyqvgIl3M9" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('presets.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/ui.js" integrity="sha384-Vb/AF0LZU8Rfes0mQtPlOTwUCBYVccXqAy//IcyTLz36ZP18zNxp3g8UYuQGGBvW" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('ui.js')"></script>
+<script src="https://cdn.jsdelivr.net/gh/math-examples/text-replacer@v1.0.9/js/app.js" integrity="sha384-m4PXRGumkM74kG6hP2crlmDbF8hBhxDFQpq8QkwZQ9rz9L7nGyZFrH2eBjxQ60bv" crossorigin="anonymous" onerror="window.__scriptLoadErrors=window.__scriptLoadErrors||[];window.__scriptLoadErrors.push('app.js')"></script>
+
+<!-- ═══════════ LOAD VERIFICATION & ERROR DISPLAY ═══════════ -->
 <script>
 (function(){
-var v = document.querySelector('meta[name="version"]');
-if(v && document.getElementById('vfVersion')) document.getElementById('vfVersion').textContent = v.content;
+    // Display version at top and in header
+    var v = document.querySelector('meta[name="version"]');
+    if(v){
+        var ver = v.content;
+        var tv = document.getElementById('topVersion');
+        var hv = document.getElementById('headerVersion');
+        if(tv) tv.textContent = ver;
+        if(hv) hv.textContent = ver;
+    }
+
+    // Wait for scripts to execute, then verify globals
+    setTimeout(function(){
+        var errors = window.__scriptLoadErrors || [];
+        var missingGlobals = [];
+        if(typeof TR_I18N === 'undefined') missingGlobals.push('TR_I18N');
+        if(typeof TR_STATE === 'undefined') missingGlobals.push('TR_STATE');
+        if(typeof TR_PROCESSOR === 'undefined') missingGlobals.push('TR_PROCESSOR');
+        if(typeof TR_RULES === 'undefined') missingGlobals.push('TR_RULES');
+        if(typeof TR_UI === 'undefined') missingGlobals.push('TR_UI');
+
+        if(errors.length > 0 || missingGlobals.length > 0){
+            var banner = document.getElementById('loadErrorBanner');
+            var msg = document.getElementById('loadErrorMsg');
+            var parts = [];
+            if(errors.length > 0) parts.push('Failed to load: ' + errors.join(', '));
+            if(missingGlobals.length > 0) parts.push('Missing objects: ' + missingGlobals.join(', '));
+            parts.push('Please check your internet connection, verify the version tag, or run ./setup.sh to update SRI hashes.');
+            msg.innerHTML = parts.join('<br>');
+            banner.style.display = 'block';
+            console.error('Text Replacer load errors:', {errors: errors, missingGlobals: missingGlobals});
+        }
+    }, 500);
 })();
 </script>
 </body>

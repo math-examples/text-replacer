@@ -94,21 +94,19 @@ sedi "s|<meta name=\"version\" content=\"[^\"]*\">|<meta name=\"version\" conten
 sedi "s|<meta name=\"cdn-owner\" content=\"[^\"]*\">|<meta name=\"cdn-owner\" content=\"${OWNER}\">|" index.html
 sedi "s|<meta name=\"cdn-repo\" content=\"[^\"]*\">|<meta name=\"cdn-repo\" content=\"${REPO}\">|" index.html
 
-# --- 3. Replace OWNER_PLACEHOLDER / REPO_PLACEHOLDER (first run) ---
-sedi "s|OWNER_PLACEHOLDER|${OWNER}|g" index.html
-sedi "s|REPO_PLACEHOLDER|${REPO}|g" index.html
-
-# --- 4. Update version in existing CDN URLs ---
+# --- 3. Update version in existing CDN URLs ---
 sedi "s|@v[0-9][^/]*/|@${VERSION}/|g" index.html
 sedi "s|@[0-9]\{14,\}/|@${VERSION}/|g" index.html
 
-# --- 5. Update CSS integrity (range match from link to crossorigin) ---
+# --- 4. Update CSS integrity (match link tag with stylesheet) ---
 CSS_SRI="${SRI[css/app.css]}"
 if [ -n "$CSS_SRI" ]; then
-  sedi "/<link rel=\"stylesheet\"/,/crossorigin=/ s|integrity=\"[^\"]*\"|integrity=\"${CSS_SRI}\"|" index.html
+  # Escape slashes and special chars for sed
+  css_sri_esc="$(printf '%s' "$CSS_SRI" | sed 's|/|\\/|g')"
+  sedi "/<link rel=\"stylesheet\"/ s|integrity=\"[^\"]*\"|integrity=\"${css_sri_esc}\"|" index.html
 fi
 
-# --- 6. Update each JS integrity (range match from script containing filename to crossorigin) ---
+# --- 5. Update each JS integrity (match script tag containing filename) ---
 for f in "${ASSETS[@]}"; do
   [ "$f" = "css/app.css" ] && continue
   sri="${SRI[$f]:-}"
@@ -116,7 +114,7 @@ for f in "${ASSETS[@]}"; do
   fname="$(basename "$f")"
   # Escape slashes in SRI for sed
   sri_esc="$(printf '%s' "$sri" | sed 's|/|\\/|g')"
-  sedi "/${fname}/,/crossorigin=/ s|integrity=\"[^\"]*\"|integrity=\"${sri_esc}\"|" index.html
+  sedi "/${fname}/ s|integrity=\"[^\"]*\"|integrity=\"${sri_esc}\"|" index.html
 done
 
 # ============ DIFF SUMMARY ============
