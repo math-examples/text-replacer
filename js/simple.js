@@ -62,10 +62,7 @@ document.head.appendChild(style);
 var simple = document.getElementById('simpleMode') || (function(){ var d=document.createElement('div'); d.id='simpleMode'; document.body.appendChild(d); return d; })();
 simple.innerHTML = `
 <div class="simple-container">
-<h2>
-  <span>${_t('simpleTitle')}</span>
-  <a class="advanced-link" href="${location.pathname}?advanced=1${location.hash}">🚀 ${_t('advanced')}</a>
-</h2>
+<h2><span>${_t('simpleTitle')}</span><a class="advanced-link" href="?advanced=1" title="${_t('advanced')}">⚙</a></h2>
 <div id="simpleRules">
 <div class="simple-rule-row">
 <input class="simpleFrom" placeholder="${_t('find')}">
