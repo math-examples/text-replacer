@@ -255,10 +255,10 @@ if (ver) {
     if (h1) h1.appendChild(vEl);
 }
 
-// ─── STEP 4: "Back to Simple" floating button ───
+// ─── STEP 4: "Back to Simple" floating button (moved to bottom-right) ───
 var backBtn = document.createElement('button');
 backBtn.innerHTML = '← ' + ((window.TR_LANG === 'zh') ? '返回简单模式 🌸' : 'Back to Simple 🌸');
-backBtn.style.cssText = 'position:fixed;top:12px;right:12px;z-index:99999;padding:8px 16px;background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;border:none;border-radius:12px;font-size:12px;cursor:pointer;font-weight:700;box-shadow:0 4px 14px rgba(236,72,153,0.35);transition:all 0.3s ease;';
+backBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:99999;padding:10px 18px;background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;border:none;border-radius:12px;font-size:13px;cursor:pointer;font-weight:700;box-shadow:0 4px 14px rgba(236,72,153,0.35);transition:all 0.3s ease;';
 backBtn.onmouseenter = function() { backBtn.style.transform = 'translateY(-2px)'; backBtn.style.boxShadow = '0 8px 24px rgba(236,72,153,0.45)'; };
 backBtn.onmouseleave = function() { backBtn.style.transform = ''; backBtn.style.boxShadow = '0 4px 14px rgba(236,72,153,0.35)'; };
 backBtn.onclick = function() { location.href = location.pathname + location.hash; };
