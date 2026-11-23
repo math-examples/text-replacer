@@ -11,27 +11,35 @@ function isZh() {
   return window.TR_LANG === 'zh' || (navigator.language || '').toLowerCase().indexOf('zh') === 0;
 }
 
-// ─── i18n helper with retry ───
-function _t(k) {
-  if (typeof TR_I18N !== 'undefined' && TR_I18N._) return TR_I18N._(k);
-  // Fallback dict
-  var zh = {
+// ─── Embedded fallback dict (used if key missing from TR_I18N) ───
+var FALLBACK = {
+  zh: {
     find: '查找 ✨', replace: '替换为 💖', advanced: '进入高级模式 🚀',
     simpleTitle: '文本替换器', simpleInput: '粘贴或输入文本...', simpleOutput: '结果将显示在这里...',
     simplePaste: '📋 粘贴', simpleLoad: '📂 加载', simpleAdd: '+ 添加规则',
     simpleViceVersa: '⇄ 全部交换', simpleReplace: '✨ 替换！', simpleSwap: '⇄ 交换',
     simpleCopy: '📋 复制', simpleDownload: '💾 下载',
     regex: '正则', caseInsensitive: '忽略大小写', copied: '💖 已复制', saved: '💾 已保存'
-  };
-  var en = {
+  },
+  en: {
     find: 'Find ✨', replace: 'Replace with 💖', advanced: 'Go to Advanced Mode 🚀',
     simpleTitle: 'Text Replacer', simpleInput: 'Paste or type text here...', simpleOutput: 'Result appears here...',
     simplePaste: '📋 Paste', simpleLoad: '📂 Load', simpleAdd: '+ Add Rule',
     simpleViceVersa: '⇄ Swap All', simpleReplace: '✨ Replace!', simpleSwap: '⇄ Swap',
     simpleCopy: '📋 Copy', simpleDownload: '💾 Download',
     regex: 'Regex', caseInsensitive: 'Aa', copied: '💖 Copied!', saved: '💾 Saved!'
-  };
-  return (isZh() ? zh : en)[k] || k;
+  }
+};
+
+// ─── i18n helper with proper fallback ───
+function _t(k) {
+  // Try global TR_I18N first
+  if (typeof TR_I18N !== 'undefined' && TR_I18N._) {
+    var val = TR_I18N._(k);
+    if (val !== k) return val; // key was found in dict
+  }
+  // Fallback to embedded dict
+  return (isZh() ? FALLBACK.zh : FALLBACK.en)[k] || k;
 }
 
 // ─── Version ───
