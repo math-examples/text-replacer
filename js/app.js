@@ -44,7 +44,6 @@ var to = document.getElementById('simpleTo');
 var regex = document.getElementById('simpleRegex');
 var kase = document.getElementById('simpleCase');
 if(from && from.value){
-// FIXED: push a new rule instead of overwriting rules[0]
 TR_STATE.rules.push({id:TR_STATE.nextId, from:from.value, to:to.value, regex:regex.checked, case:kase.checked, enabled:true});
 if(TR_RULES && TR_RULES.render) TR_RULES.render();
 }
@@ -62,39 +61,27 @@ var regex = document.getElementById('simpleRegex');
 var kase = document.getElementById('simpleCase');
 var inp = document.getElementById('simpleInput');
 var out = document.getElementById('simpleOutput');
+
 function doReplace(){
 var f = from.value, t = to.value;
 var text = inp.value;
 if(!text){ out.value = ''; return; }
-if(regex.checked){
-var m = f.match(/^\/(.+)\/([gimsuy]*)$/);
-if(m){ try{ var re = new RegExp(m[1], m[2]); out.value = text.replace(re, TR_PROCESSOR.unesc(t)); }catch(e){ out.value = text; } }
-else { out.value = text; }
-} else {
-var f2 = TR_PROCESSOR.unesc(f), t2 = TR_PROCESSOR.unesc(t);
-if(kase.checked){ out.value = text.split(f2).join(t2); }
-else {
-var result = '';
-var lowerText = text.toLowerCase();
-var lowerFrom = f2.toLowerCase();
-var pos = 0, foundIdx;
-while((foundIdx = lowerText.indexOf(lowerFrom, pos)) !== -1){
-result += text.slice(pos, foundIdx) + t2;
-pos = foundIdx + lowerFrom.length;
+// FIXED: use TR_PROCESSOR.applyRules directly — single code path
+var tmpRule = { from: f, to: t, regex: regex.checked, case: kase.checked, enabled: true };
+out.value = TR_PROCESSOR.applyRules(text, [tmpRule]);
 }
-result += text.slice(pos);
-out.value = result;
-}
-}
-}
+
 document.getElementById('simpleReplace').onclick = doReplace;
 inp.addEventListener('input', doReplace);
 from.addEventListener('input', doReplace);
 to.addEventListener('input', doReplace);
 regex.addEventListener('change', doReplace);
 kase.addEventListener('change', doReplace);
+// Also run once on load in case there's pre-filled text
+setTimeout(doReplace, 100);
+
 document.getElementById('simpleCopy').onclick = function(){
-if(navigator.clipboard){
+if(navigator.clipboard && navigator.clipboard.writeText){
 navigator.clipboard.writeText(out.value).then(function(){
 if(window.TR_UI) TR_UI.toast(TR_I18N._('copied'));
 });
@@ -114,7 +101,7 @@ initSimple();
 
 // ============ FULL APP ============
 (function(){
-var ADV_KEY = 'tr-advanced'; // FIXED: define in this scope too
+var ADV_KEY = 'tr-advanced';
 if(TR_I18N && TR_I18N.apply) TR_I18N.apply();
 if(TR_RULES && TR_RULES.render) TR_RULES.render();
 if(TR_UI && TR_UI.bindTabs) TR_UI.bindTabs();
@@ -143,7 +130,7 @@ b = document.getElementById('btnRedo'); if(b) b.onclick = function(){
 var h = TR_STATE.redo(); if(h){ document.getElementById('input').value = h.inp; TR_STATE.rules = h.rules; TR_RULES.render(); TR_UI.process(); TR_UI.toast(TR_I18N._('redone')); }
 };
 b = document.getElementById('btnCopy'); if(b) b.onclick = function(){
-if(navigator.clipboard){
+if(navigator.clipboard && navigator.clipboard.writeText){
 navigator.clipboard.writeText(TR_STATE.currentOutput).then(function(){ TR_UI.toast(TR_I18N._('copied')); });
 } else { TR_UI.toast('Clipboard not available'); }
 };
@@ -163,7 +150,7 @@ el.style.opacity = '0';
 el.style.transform = 'translateY(6px)';
 });
 setTimeout(function(){
-localStorage.removeItem(ADV_KEY); // FIXED: now defined
+localStorage.removeItem(ADV_KEY);
 location.reload();
 }, 300);
 };

@@ -27,7 +27,7 @@ cb.onchange = function(){ rule[cb.dataset.p] = cb.checked; row.classList.toggle(
 });
 row.querySelector('.rf').oninput = function(e){ rule.from = e.target.value; TR_UI.process(); };
 row.querySelector('.rt').oninput = function(e){ rule.to = e.target.value; TR_UI.process(); };
-// FIXED: use rule.id to find index instead of indexOf reference
+// FIXED: use rule.id instead of stale indexOf
 row.querySelector('.rule-remove').onclick = function(){
 var idx = TR_STATE.rules.findIndex(function(r){ return r.id === rule.id; });
 if(idx !== -1){ TR_STATE.rules.splice(idx,1); render(); TR_UI.process(); }
