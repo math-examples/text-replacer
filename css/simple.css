@@ -177,3 +177,105 @@ body {
 
 /* Full UI hidden by default */
 #fullUI { display: none; }
+/* ═══════════ LANDSCAPE FIX — Horizontal Mode ═══════════ */
+@media (orientation: landscape) {
+  /* ── Simple Mode Container ── */
+  .simple-mode {
+    /* Switch from fixed to absolute so the page can scroll naturally */
+    position: absolute !important;
+    inset: auto !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    padding: 12px !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .simple-container {
+    max-width: 100% !important;
+    padding: 0 8px !important;
+  }
+
+  /* Shrink the heading a bit */
+  .simple-container h2 {
+    font-size: 20px !important;
+    margin-bottom: 2px !important;
+  }
+  .simple-container p { display: none !important; } /* hide the hint to save space */
+
+  /* ── Rule Rows ── */
+  .simple-rules { margin-bottom: 6px !important; gap: 4px !important; }
+  .simple-rule-row {
+    padding: 6px 10px !important;
+    border-radius: 10px !important;
+  }
+  .simple-rule-row input {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+
+  /* ── Textareas: the most important part! ── */
+  .simple-panes {
+    height: auto !important;       /* override the 52vh */
+    min-height: 0 !important;
+    gap: 8px !important;
+  }
+  .simple-panes textarea {
+    min-height: 90px !important;   /* small but usable */
+    height: auto !important;
+    resize: vertical !important;   /* allow the user to expand if needed */
+  }
+
+  /* If the screen is narrow (e.g., phone in landscape), stack the panes */
+  @media (max-width: 768px) {
+    .simple-panes { grid-template-columns: 1fr !important; }
+  }
+
+  /* ── Buttons & Actions ── */
+  .simple-rule-actions,
+  .simple-actions {
+    margin-bottom: 6px !important;
+    gap: 4px !important;
+  }
+  .simple-rule-actions button,
+  .simple-actions button {
+    padding: 5px 10px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+  }
+
+  /* ── Advanced Mode Floating Button ── */
+  /* Target the button injected by app.js */
+  body > button[style*="position: fixed"],
+  #fullUI .btn-ghost {
+    bottom: 10px !important;
+    right: 10px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+  }
+
+  /* ── Toast positioning so it doesn’t overlap the button ── */
+  .toast-container {
+    bottom: 50px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: 90% !important;
+  }
+}
+
+/* Extra safety: prevent any horizontal scroll on the whole page */
+@media (orientation: landscape) {
+  body {
+    overflow-x: hidden !important;
+  }
+  .simple-mode,
+  #fullUI {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+}
