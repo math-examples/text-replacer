@@ -17,6 +17,9 @@ if (fullUI) {
     fullUI.classList.add('revealed');
 }
 
+var versionBanner = document.getElementById('versionBanner');
+if (versionBanner) versionBanner.style.display = 'none';
+
 // ─── STEP 2: Apply girly theme via CSS variable overrides ───
 var girlyStyle = document.createElement('style');
 girlyStyle.id = 'advancedGirlyTheme';
